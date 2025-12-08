@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  STUDENT
+  MENTOR
+  ADMIN
+}
+
+enum AuthProvider {
+  GOOGLE
+  GITHUB
+  EMAIL_PASSWORD
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  avatarUrl String?
+  role      UserRole @default(STUDENT)
+  college   String?
+
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt       @db.Timestamptz(6)
+
+  // relations
+  authAccounts AuthAccount[]
+  credential   EmailCredential?
+  sessions     Session[]
+}
+
+// OAuth / provider accounts (Google, GitHub, etc.)
+model AuthAccount {
+  id             String        @id @default(cuid())
+  provider       AuthProvider
+  providerUserId String        // e.g. Google sub, GitHub id
+
+  userId   String
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // optional: store tokens if you need them later
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime? @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt       @db.Timestamptz(6)
+
+  // one providerUserId per provider (prevents duplicates)
+  @@unique([provider, providerUserId])
+  @@index([userId])
+}
+
+// Email + password credentials (1-to-1 with User)
+model EmailCredential {
+  userId       String   @id
+  passwordHash String   // store only a strong hash (bcrypt/argon2)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt       @db.Timestamptz(6)
+
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Optional but recommended for production if you don't want pure stateless JWT.
+// You can also drop this and go full JWT if you prefer.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique // random session token / JWT id
+  userAgent String?
+  ipAddress String?
+
+  expiresAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
