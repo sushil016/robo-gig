@@ -4,21 +4,30 @@
   "type": "module",
   "description": "",
   "main": "index.js",
-   "scripts": {
+  "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "tsc -b && node dist/server.js",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "email:worker": "tsx src/workers/email-worker.ts once",
+    "email:worker:watch": "tsx src/workers/email-worker.ts continuous 2",
+    "email:worker:prod": "node dist/workers/email-worker.js once",
+    "bootstrap": "tsx src/scripts/bootstrap.ts",
+    "promote-admin": "tsx src/scripts/promote-admin.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@prisma/adapter-pg": "^7.1.0",
     "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
+    "@types/nodemailer": "^7.0.4",
     "@types/pg": "^8.15.6",
     "nodemon": "^3.1.11",
     "prisma": "^7.1.0",
@@ -28,8 +37,13 @@
   "dependencies": {
     "@prisma/client": "^7.1.0",
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "google-auth-library": "^10.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^7.0.11",
     "pg": "^8.16.3"
   }
 }
