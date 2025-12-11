@@ -54,11 +54,34 @@ enum DifficultyLevel {
   ADVANCED
 }
 
+enum ProjectCategory {
+  IOT                  // Internet of Things
+  ROBOTICS             // Robots, Robotic Arms, etc.
+  DRONE                // Drones, UAVs, Flying Robots
+  AUTOMATION           // Home/Industrial Automation
+  ENVIRONMENT          // Environment Monitoring, Green Tech
+  HEALTH               // Healthcare, Medical Devices
+  AGRICULTURE          // Smart Farming, Agri-Tech
+  SECURITY             // Security Systems, Surveillance
+  EDUCATION            // Educational Tools, Learning Kits
+  AUTOMOTIVE           // Car Tech, Vehicle Automation
+  SMART_HOME           // Home Automation, Smart Devices
+  ENERGY               // Renewable Energy, Power Management
+  WEARABLES            // Wearable Tech, Smart Watches
+  GAMING               // Gaming Controllers, VR/AR
+  MUSIC                // Musical Instruments, Audio Tech
+  COMMUNICATION        // RF, Wireless, Communication Systems
+  AI_ML                // Artificial Intelligence, Machine Learning
+  COMPUTER_VISION      // Image Processing, Object Detection
+  OTHER                // Miscellaneous
+}
+
 enum ProjectAssetType {
   CIRCUIT_DIAGRAM
   BLOCK_DIAGRAM
   IMAGE
   CODE_ZIP
+  VIDEO
   OTHER
 }
 
@@ -76,6 +99,7 @@ enum OrderType {
   PROJECT_KIT
   COMPONENTS_ONLY
   BUILT_PROJECT
+  PRE_BUILT_PROJECT
 }
 
 enum OrderItemType {
@@ -120,6 +144,41 @@ enum FileType {
   IMAGE
   CODE_ZIP
   OTHER
+}
+
+enum StudentListingType {
+  COMPONENT
+  PROJECT
+  KIT
+  OTHER
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+}
+
+enum ListingStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SOLD
+  REMOVED
+}
+
+enum StudentOrderStatus {
+  PENDING_PAYMENT
+  PAYMENT_SECURED
+  SELLER_CONFIRMED
+  ITEM_SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+  REFUNDED
 }
 
 model User {
@@ -247,15 +306,43 @@ model Project {
   summary     String? @db.Text
   description String? @db.Text
 
+  // Categorization for better UX
+  category    ProjectCategory // Main category (IoT, Robotics, Drone, etc.)
+  tags        String[] // Additional tags for filtering (e.g., ["beginner-friendly", "arduino", "sensors"])
+  
   projectType ProjectType     @default(FEATURED)
   difficulty  DifficultyLevel @default(BEGINNER)
 
-  estimatedCostCents        Int? // cost in paise/cents
-  estimatedBuildTimeMinutes Int?
+  // Pricing & Time
+  estimatedCostCents        Int? // DIY kit cost in paise/cents
+  estimatedBuildTimeMinutes Int? // Time to complete
 
+  // Pre-Built Option (Admin builds and lists)
+  preBuiltAvailable  Boolean @default(false)
+  preBuiltStock      Int     @default(0) // Available pre-built units
+  preBuiltPriceCents Int? // Higher price for assembled version
+  preBuiltImages     String[] // Photos of actual built units
+
+  // Media
   thumbnailUrl String?
-  isPublic     Boolean @default(true)
-
+  youtubeUrl   String? // YouTube tutorial video URL
+  
+  // Visibility & Status
+  isFeatured      Boolean @default(false) // Show on homepage
+  isPublic        Boolean @default(true)
+  isAIGenerated   Boolean @default(false) // From AI custom project
+  publishedAt     DateTime? @db.Timestamptz(6)
+  
+  // Learning Info
+  learningOutcomes String[] // What student will learn
+  prerequisites    String[] // Required knowledge/skills
+  
+  // Stats
+  viewCount      Int @default(0)
+  buildCount     Int @default(0) // How many students built this
+  averageRating  Float @default(0.0)
+  
+  // Relations
   createdById String?
   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
@@ -278,8 +365,12 @@ model Project {
   fileUploads       FileUpload[]
 
   @@index([projectType, isPublic])
+  @@index([category]) // For category filtering
   @@index([difficulty])
+  @@index([isFeatured]) // For featured projects
+  @@index([isAIGenerated]) // For AI projects
   @@index([slug])
+  @@index([publishedAt])
 }
 
 model ProjectStep {

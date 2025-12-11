@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import componentRoutes from "./features/components/routes/component.routes.js";
+import projectRoutes from "./features/projects/routes/project.routes.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -54,6 +55,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/emails", emailRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/components", componentRoutes);
+app.use("/api/projects", projectRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
