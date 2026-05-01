@@ -10,8 +10,7 @@
  */
 
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { API_BASE_URL } from './config';
 
 // Create axios instance
 const api = axios.create({

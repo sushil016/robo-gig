@@ -5,6 +5,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   API_BASE_URL,
+  STOREFRONT_URL,
   emptyProductForm,
   emptyProjectForm,
   productTypes,
@@ -510,7 +511,7 @@ export function AdminConsole() {
 
           <div className="border-t border-white/10 p-4">
             <a
-              href="http://localhost:3000"
+              href={STOREFRONT_URL}
               className="block rounded-md bg-white px-4 py-3 text-center text-sm font-black text-slate-950"
             >
               Open Storefront

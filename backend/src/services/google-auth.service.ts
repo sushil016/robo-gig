@@ -10,7 +10,23 @@ import { UserRole, AuthProvider } from "../generated/prisma/client.js";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || "http://localhost:4000/api/auth/google/callback";
+const defaultBackendUrl =
+  process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}/_/backend`
+    : process.env.NODE_ENV === "production"
+      ? "https://robo-gig.vercel.app/_/backend"
+      : "http://localhost:4000";
+
+function isLocalhostUrl(url?: string) {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/.test(url || "");
+}
+
+const configuredGoogleRedirectUri = process.env.GOOGLE_REDIRECT_URI?.trim();
+const GOOGLE_REDIRECT_URI =
+  configuredGoogleRedirectUri &&
+  !(process.env.NODE_ENV === "production" && isLocalhostUrl(configuredGoogleRedirectUri))
+    ? configuredGoogleRedirectUri
+    : `${defaultBackendUrl}/api/auth/google/callback`;
 
 const googleClient = new OAuth2Client(
   GOOGLE_CLIENT_ID,

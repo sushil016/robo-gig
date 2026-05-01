@@ -17,6 +17,26 @@ import {
 import { validateSignupRequest, validateLoginRequest } from "../utils/validation.js";
 import { AuthError, ValidationError } from "../utils/types.js";
 
+const defaultFrontendUrl =
+  process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NODE_ENV === "production"
+      ? "https://robo-gig.vercel.app"
+      : "http://localhost:3000";
+
+function isLocalhostUrl(url?: string) {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/.test(url || "");
+}
+
+function getFrontendUrl() {
+  const configuredUrl = process.env.FRONTEND_URL?.trim();
+  if (configuredUrl && !(process.env.NODE_ENV === "production" && isLocalhostUrl(configuredUrl))) {
+    return configuredUrl;
+  }
+
+  return defaultFrontendUrl;
+}
+
 /**
  * Signup with email and password
  */
@@ -238,20 +258,20 @@ export async function googleCallbackController(req: Request, res: Response): Pro
 
     // Redirect to frontend with tokens
     // In production, use environment variable for frontend URL
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const frontendUrl = getFrontendUrl();
     const redirectUrl = `${frontendUrl}/callback?provider=google&accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`;
     
     res.redirect(redirectUrl);
   } catch (error) {
     if (error instanceof AuthError) {
       // Redirect to frontend with error
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const frontendUrl = getFrontendUrl();
       res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(error.message)}`);
       return;
     }
 
     console.error("Google callback error:", error);
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const frontendUrl = getFrontendUrl();
     res.redirect(`${frontendUrl}/login?error=authentication_failed`);
   }
 }
@@ -296,20 +316,20 @@ export async function githubCallbackController(req: Request, res: Response): Pro
     const result = await handleGitHubCallback(code);
 
     // Redirect to frontend with tokens
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const frontendUrl = getFrontendUrl();
     const redirectUrl = `${frontendUrl}/callback?provider=github&accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`;
     
     res.redirect(redirectUrl);
   } catch (error) {
     if (error instanceof AuthError) {
       // Redirect to frontend with error
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const frontendUrl = getFrontendUrl();
       res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(error.message)}`);
       return;
     }
 
     console.error("GitHub callback error:", error);
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const frontendUrl = getFrontendUrl();
     res.redirect(`${frontendUrl}/login?error=authentication_failed`);
   }
 }

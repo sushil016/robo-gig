@@ -22,19 +22,38 @@ app.use(helmet({
 }));
 
 // CORS configuration
+const configuredOrigins = (process.env.CORS_ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const vercelOrigin = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "";
+
 const allowedOrigins = [
   process.env.FRONTEND_URL || "http://localhost:3000",
   process.env.ADMIN_FRONTEND_URL || "http://localhost:3002",
+  "https://robo-gig.vercel.app",
+  vercelOrigin,
+  ...configuredOrigins,
   "http://localhost:3001",
   "http://localhost:3002",
   "http://127.0.0.1:3000",
   "http://127.0.0.1:3001",
   "http://127.0.0.1:3002",
-];
+].filter(Boolean);
+
+function isAllowedVercelPreview(origin: string) {
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return protocol === "https:" && hostname.endsWith(".vercel.app") && hostname.includes("robo-gig");
+  } catch {
+    return false;
+  }
+}
 
 const corsOptions = {
   origin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isAllowedVercelPreview(origin)) {
       callback(null, true);
       return;
     }

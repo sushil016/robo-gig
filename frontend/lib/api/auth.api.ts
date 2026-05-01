@@ -4,6 +4,7 @@
  */
 
 import api from './client';
+import { API_BASE_URL } from './config';
 import type {
   SignupRequest,
   LoginRequest,
@@ -61,8 +62,7 @@ export const authApi = {
    * This will redirect user to Google login
    */
   getGoogleAuthUrl: (): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    return `${baseUrl}/api/auth/google`;
+    return `${API_BASE_URL}/api/auth/google`;
   },
 
   /**
@@ -70,8 +70,7 @@ export const authApi = {
    * This will redirect user to GitHub login
    */
   getGitHubAuthUrl: (): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    return `${baseUrl}/api/auth/github`;
+    return `${API_BASE_URL}/api/auth/github`;
   },
 
   /**

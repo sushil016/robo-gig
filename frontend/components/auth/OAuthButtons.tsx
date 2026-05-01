@@ -14,6 +14,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { API_BASE_URL } from '@/lib/api/config';
 
 interface OAuthButtonsProps {
   isLoading?: boolean;
@@ -24,12 +25,12 @@ export function OAuthButtons({ isLoading = false }: OAuthButtonsProps) {
     // Redirect to backend which will initiate Google OAuth
     // Backend will redirect back to /api/auth/google/callback
     // Backend should then redirect to frontend /callback with auth data
-    window.location.href = 'http://localhost:4000/api/auth/google';
+    window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 
   const handleGitHubLogin = () => {
     // Redirect to backend which will initiate GitHub OAuth
-    window.location.href = 'http://localhost:4000/api/auth/github';
+    window.location.href = `${API_BASE_URL}/api/auth/github`;
   };
 
   return (
@@ -96,4 +97,3 @@ export function OAuthButtons({ isLoading = false }: OAuthButtonsProps) {
     </div>
   );
 }
-

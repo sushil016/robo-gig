@@ -9,7 +9,23 @@ import { UserRole, AuthProvider } from "../generated/prisma/client.js";
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "";
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || "";
-const GITHUB_REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || "http://localhost:4000/api/auth/github/callback";
+const defaultBackendUrl =
+  process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}/_/backend`
+    : process.env.NODE_ENV === "production"
+      ? "https://robo-gig.vercel.app/_/backend"
+      : "http://localhost:4000";
+
+function isLocalhostUrl(url?: string) {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/.test(url || "");
+}
+
+const configuredGithubRedirectUri = process.env.GITHUB_REDIRECT_URI?.trim();
+const GITHUB_REDIRECT_URI =
+  configuredGithubRedirectUri &&
+  !(process.env.NODE_ENV === "production" && isLocalhostUrl(configuredGithubRedirectUri))
+    ? configuredGithubRedirectUri
+    : `${defaultBackendUrl}/api/auth/github/callback`;
 
 interface GitHubUser {
   id: number;
