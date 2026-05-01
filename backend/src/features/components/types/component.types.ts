@@ -10,6 +10,14 @@ export interface CreateComponentRequest {
   typicalUseCase?: string;
   vendorLink?: string;
   imageUrl?: string;
+  category?: string;
+  subcategory?: string;
+  productType?: ComponentProductType;
+  brand?: string;
+  tags?: string[];
+  isBestSeller?: boolean;
+  isRobomaniacItem?: boolean;
+  isSoftware?: boolean;
   unitPriceCents: number;
   stockQuantity?: number;
   isActive?: boolean;
@@ -22,6 +30,14 @@ export interface UpdateComponentRequest {
   typicalUseCase?: string;
   vendorLink?: string;
   imageUrl?: string;
+  category?: string;
+  subcategory?: string;
+  productType?: ComponentProductType;
+  brand?: string | null;
+  tags?: string[];
+  isBestSeller?: boolean;
+  isRobomaniacItem?: boolean;
+  isSoftware?: boolean;
   unitPriceCents?: number;
   stockQuantity?: number;
   isActive?: boolean;
@@ -30,6 +46,12 @@ export interface UpdateComponentRequest {
 export interface ComponentFilters {
   search?: string;
   isActive?: boolean;
+  category?: string;
+  subcategory?: string;
+  productType?: ComponentProductType;
+  isBestSeller?: boolean;
+  isRobomaniacItem?: boolean;
+  isSoftware?: boolean;
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
@@ -47,6 +69,14 @@ export interface ComponentResponse {
   typicalUseCase: string | null;
   vendorLink: string | null;
   imageUrl: string | null;
+  category: string;
+  subcategory: string;
+  productType: ComponentProductType;
+  brand: string | null;
+  tags: string[];
+  isBestSeller: boolean;
+  isRobomaniacItem: boolean;
+  isSoftware: boolean;
   unitPriceCents: number;
   unitPrice: number; // Formatted price in rupees
   stockQuantity: number;
@@ -70,4 +100,28 @@ export interface ComponentStockUpdate {
   componentId: string;
   quantity: number;
   operation: "add" | "subtract" | "set";
+}
+
+export type ComponentProductType =
+  | "ELECTRONICS_COMPONENT"
+  | "MODULE"
+  | "SENSOR"
+  | "DEVELOPMENT_BOARD"
+  | "MOTOR_ACTUATOR"
+  | "POWER_BATTERY"
+  | "TOOL_EQUIPMENT"
+  | "COURSE_KIT"
+  | "BOOK"
+  | "SOFTWARE"
+  | "CUSTOM_PROJECT_SERVICE"
+  | "OTHER";
+
+export interface ComponentCategoryNode {
+  category: string;
+  count: number;
+  subcategories: {
+    name: string;
+    count: number;
+    products: ComponentResponse[];
+  }[];
 }

@@ -181,6 +181,21 @@ enum StudentOrderStatus {
   REFUNDED
 }
 
+enum ComponentProductType {
+  ELECTRONICS_COMPONENT
+  MODULE
+  SENSOR
+  DEVELOPMENT_BOARD
+  MOTOR_ACTUATOR
+  POWER_BATTERY
+  TOOL_EQUIPMENT
+  COURSE_KIT
+  BOOK
+  SOFTWARE
+  CUSTOM_PROJECT_SERVICE
+  OTHER
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String?
@@ -451,6 +466,15 @@ model Component {
   vendorLink     String?
   imageUrl       String?
 
+  category    String @default("Electronics Components")
+  subcategory String @default("General")
+  productType ComponentProductType @default(ELECTRONICS_COMPONENT)
+  brand       String?
+  tags        String[] @default([])
+  isBestSeller Boolean @default(false)
+  isRobomaniacItem Boolean @default(false)
+  isSoftware   Boolean @default(false)
+
   unitPriceCents Int // price per unit
   stockQuantity  Int     @default(0)
   isActive       Boolean @default(true)
@@ -463,6 +487,10 @@ model Component {
   orderItems        OrderItem[]
 
   @@index([isActive])
+  @@index([category, subcategory])
+  @@index([productType])
+  @@index([isBestSeller])
+  @@index([isRobomaniacItem])
   @@index([sku])
 }
 

@@ -1,0 +1,41 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  BatteryCharging,
+  Boxes,
+  BrainCircuit,
+  Cpu,
+  Factory,
+  Film,
+  Gauge,
+  GraduationCap,
+  Microscope,
+  PackageCheck,
+  Plane,
+  Radar,
+  Rocket,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  Wrench,
+} from "lucide-react";
+import type { HomeIconName } from "@/data/homepage";
+
+export const homeIcons: Record<HomeIconName, LucideIcon> = {
+  battery: BatteryCharging,
+  boxes: Boxes,
+  brain: BrainCircuit,
+  cpu: Cpu,
+  factory: Factory,
+  film: Film,
+  gauge: Gauge,
+  graduation: GraduationCap,
+  microscope: Microscope,
+  package: PackageCheck,
+  plane: Plane,
+  radar: Radar,
+  rocket: Rocket,
+  shield: ShieldCheck,
+  sparkles: Sparkles,
+  store: Store,
+  wrench: Wrench,
+};

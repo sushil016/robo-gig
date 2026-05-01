@@ -10,6 +10,7 @@ import type {
   UpdateComponentRequest,
   ComponentFilters,
   ComponentResponse,
+  ComponentCategoryNode,
   PaginatedComponentsResponse,
 } from "../types/component.types.js";
 
@@ -25,6 +26,14 @@ function formatComponent(component: any): ComponentResponse {
     typicalUseCase: component.typicalUseCase,
     vendorLink: component.vendorLink,
     imageUrl: component.imageUrl,
+    category: component.category,
+    subcategory: component.subcategory,
+    productType: component.productType,
+    brand: component.brand,
+    tags: component.tags || [],
+    isBestSeller: component.isBestSeller,
+    isRobomaniacItem: component.isRobomaniacItem,
+    isSoftware: component.isSoftware,
     unitPriceCents: component.unitPriceCents,
     unitPrice: component.unitPriceCents / 100, // Convert to rupees
     stockQuantity: component.stockQuantity,
@@ -57,6 +66,14 @@ export async function createComponent(data: CreateComponentRequest): Promise<Com
       typicalUseCase: data.typicalUseCase || null,
       vendorLink: data.vendorLink || null,
       imageUrl: data.imageUrl || null,
+      category: data.category || "Electronics Components",
+      subcategory: data.subcategory || "General",
+      productType: data.productType || "ELECTRONICS_COMPONENT",
+      brand: data.brand || null,
+      tags: data.tags || [],
+      isBestSeller: data.isBestSeller || false,
+      isRobomaniacItem: data.isRobomaniacItem || false,
+      isSoftware: data.isSoftware || false,
       unitPriceCents: data.unitPriceCents,
       stockQuantity: data.stockQuantity || 0,
       isActive: data.isActive !== undefined ? data.isActive : true,
@@ -77,6 +94,12 @@ export async function getComponents(
   const {
     search,
     isActive,
+    category,
+    subcategory,
+    productType,
+    isBestSeller,
+    isRobomaniacItem,
+    isSoftware,
     minPrice,
     maxPrice,
     inStock,
@@ -94,11 +117,39 @@ export async function getComponents(
       { name: { contains: search, mode: "insensitive" } },
       { description: { contains: search, mode: "insensitive" } },
       { sku: { contains: search, mode: "insensitive" } },
+      { brand: { contains: search, mode: "insensitive" } },
+      { category: { contains: search, mode: "insensitive" } },
+      { subcategory: { contains: search, mode: "insensitive" } },
+      { tags: { has: search } },
     ];
   }
 
   if (isActive !== undefined) {
     where.isActive = isActive;
+  }
+
+  if (category) {
+    where.category = { equals: category, mode: "insensitive" };
+  }
+
+  if (subcategory) {
+    where.subcategory = { equals: subcategory, mode: "insensitive" };
+  }
+
+  if (productType) {
+    where.productType = productType;
+  }
+
+  if (isBestSeller !== undefined) {
+    where.isBestSeller = isBestSeller;
+  }
+
+  if (isRobomaniacItem !== undefined) {
+    where.isRobomaniacItem = isRobomaniacItem;
+  }
+
+  if (isSoftware !== undefined) {
+    where.isSoftware = isSoftware;
   }
 
   if (minPrice !== undefined || maxPrice !== undefined) {
@@ -176,6 +227,53 @@ export async function getComponentBySku(sku: string): Promise<ComponentResponse>
   }
 
   return formatComponent(component);
+}
+
+/**
+ * Get category > subcategory > products tree for browse-all-categories.
+ */
+export async function getComponentCategoryTree(): Promise<ComponentCategoryNode[]> {
+  const components = await prisma.component.findMany({
+    where: { isActive: true },
+    orderBy: [{ category: "asc" }, { subcategory: "asc" }, { name: "asc" }],
+  });
+
+  const categoryMap = new Map<string, ComponentCategoryNode>();
+
+  for (const component of components) {
+    const formatted = formatComponent(component);
+    const categoryName = formatted.category || "Electronics Components";
+    const subcategoryName = formatted.subcategory || "General";
+
+    if (!categoryMap.has(categoryName)) {
+      categoryMap.set(categoryName, {
+        category: categoryName,
+        count: 0,
+        subcategories: [],
+      });
+    }
+
+    const categoryNode = categoryMap.get(categoryName)!;
+    categoryNode.count += 1;
+
+    let subcategoryNode = categoryNode.subcategories.find(
+      (subcategory) => subcategory.name === subcategoryName
+    );
+
+    if (!subcategoryNode) {
+      subcategoryNode = {
+        name: subcategoryName,
+        count: 0,
+        products: [],
+      };
+      categoryNode.subcategories.push(subcategoryNode);
+    }
+
+    subcategoryNode.count += 1;
+    subcategoryNode.products.push(formatted);
+  }
+
+  return Array.from(categoryMap.values());
 }
 
 /**

@@ -70,6 +70,28 @@ export async function getComponentsHandler(
 }
 
 /**
+ * Get component category tree
+ * GET /api/components/categories/tree
+ * Access: Public
+ */
+export async function getCategoryTreeHandler(
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const categories = await componentService.getComponentCategoryTree();
+
+    res.status(200).json({
+      success: true,
+      data: categories,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * Get a single component by ID
  * GET /api/components/:id
  * Access: Public

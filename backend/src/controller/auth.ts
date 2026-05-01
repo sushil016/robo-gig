@@ -236,29 +236,23 @@ export async function googleCallbackController(req: Request, res: Response): Pro
 
     const result = await handleGoogleCallback(code);
 
-    // In production, redirect to frontend with tokens in URL params or use httpOnly cookies
-    // For now, return JSON response
-    res.status(200).json({
-      success: true,
-      message: "Google authentication successful",
-      data: result,
-    });
+    // Redirect to frontend with tokens
+    // In production, use environment variable for frontend URL
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const redirectUrl = `${frontendUrl}/callback?provider=google&accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`;
+    
+    res.redirect(redirectUrl);
   } catch (error) {
     if (error instanceof AuthError) {
-      res.status(error.statusCode).json({
-        success: false,
-        error: error.message,
-        code: error.code,
-      });
+      // Redirect to frontend with error
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(error.message)}`);
       return;
     }
 
     console.error("Google callback error:", error);
-    res.status(500).json({
-      success: false,
-      error: "Internal server error",
-      code: "INTERNAL_SERVER_ERROR",
-    });
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    res.redirect(`${frontendUrl}/login?error=authentication_failed`);
   }
 }
 
@@ -301,28 +295,21 @@ export async function githubCallbackController(req: Request, res: Response): Pro
 
     const result = await handleGitHubCallback(code);
 
-    // In production, redirect to frontend with tokens in URL params or use httpOnly cookies
-    // For now, return JSON response
-    res.status(200).json({
-      success: true,
-      message: "GitHub authentication successful",
-      data: result,
-    });
+    // Redirect to frontend with tokens
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const redirectUrl = `${frontendUrl}/callback?provider=github&accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`;
+    
+    res.redirect(redirectUrl);
   } catch (error) {
     if (error instanceof AuthError) {
-      res.status(error.statusCode).json({
-        success: false,
-        error: error.message,
-        code: error.code,
-      });
+      // Redirect to frontend with error
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(error.message)}`);
       return;
     }
 
     console.error("GitHub callback error:", error);
-    res.status(500).json({
-      success: false,
-      error: "Internal server error",
-      code: "INTERNAL_SERVER_ERROR",
-    });
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    res.redirect(`${frontendUrl}/login?error=authentication_failed`);
   }
 }

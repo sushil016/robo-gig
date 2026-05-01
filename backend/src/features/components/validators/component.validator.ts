@@ -3,12 +3,74 @@
  * Input validation for component operations
  */
 
-import type { CreateComponentRequest, UpdateComponentRequest, ComponentFilters } from "../types/component.types.js";
+import type {
+  ComponentProductType,
+  CreateComponentRequest,
+  UpdateComponentRequest,
+  ComponentFilters,
+} from "../types/component.types.js";
 
 export interface ValidationResult<T> {
   success: boolean;
   data?: T;
   error?: string;
+}
+
+const PRODUCT_TYPES: ComponentProductType[] = [
+  "ELECTRONICS_COMPONENT",
+  "MODULE",
+  "SENSOR",
+  "DEVELOPMENT_BOARD",
+  "MOTOR_ACTUATOR",
+  "POWER_BATTERY",
+  "TOOL_EQUIPMENT",
+  "COURSE_KIT",
+  "BOOK",
+  "SOFTWARE",
+  "CUSTOM_PROJECT_SERVICE",
+  "OTHER",
+];
+
+function parseStringArray(value: unknown): string[] | undefined {
+  if (value === undefined || value === null) return undefined;
+
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+    } catch {
+      // Fall back to comma-separated tags.
+    }
+
+    return trimmed
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return undefined;
+}
+
+function parseBoolean(value: unknown): boolean | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value === "true";
+  return Boolean(value);
 }
 
 /**
@@ -67,6 +129,10 @@ export function validateCreateComponent(data: any): ValidationResult<CreateCompo
     }
   }
 
+  if (data.productType !== undefined && !PRODUCT_TYPES.includes(data.productType)) {
+    errors.push("Invalid product type");
+  }
+
   // URL validations (optional)
   if (data.vendorLink && typeof data.vendorLink === "string") {
     try {
@@ -101,8 +167,21 @@ export function validateCreateComponent(data: any): ValidationResult<CreateCompo
   if (data.typicalUseCase?.trim()) result.typicalUseCase = data.typicalUseCase.trim();
   if (data.vendorLink?.trim()) result.vendorLink = data.vendorLink.trim();
   if (data.imageUrl?.trim()) result.imageUrl = data.imageUrl.trim();
+  if (data.category?.trim()) result.category = data.category.trim();
+  if (data.subcategory?.trim()) result.subcategory = data.subcategory.trim();
+  if (data.productType) result.productType = data.productType;
+  if (data.brand?.trim()) result.brand = data.brand.trim();
+  const tags = parseStringArray(data.tags);
+  if (tags !== undefined) result.tags = tags;
+  const isBestSeller = parseBoolean(data.isBestSeller);
+  if (isBestSeller !== undefined) result.isBestSeller = isBestSeller;
+  const isRobomaniacItem = parseBoolean(data.isRobomaniacItem);
+  if (isRobomaniacItem !== undefined) result.isRobomaniacItem = isRobomaniacItem;
+  const isSoftware = parseBoolean(data.isSoftware);
+  if (isSoftware !== undefined) result.isSoftware = isSoftware;
   if (data.stockQuantity !== undefined) result.stockQuantity = Math.round(data.stockQuantity);
-  if (data.isActive !== undefined) result.isActive = Boolean(data.isActive);
+  const isActive = parseBoolean(data.isActive);
+  if (isActive !== undefined) result.isActive = isActive;
 
   return {
     success: true,
@@ -172,6 +251,10 @@ export function validateUpdateComponent(data: any): ValidationResult<UpdateCompo
     }
   }
 
+  if (data.productType !== undefined && !PRODUCT_TYPES.includes(data.productType)) {
+    errors.push("Invalid product type");
+  }
+
   // URL validations (if provided)
   if (data.vendorLink !== undefined && data.vendorLink && typeof data.vendorLink === "string") {
     try {
@@ -204,9 +287,22 @@ export function validateUpdateComponent(data: any): ValidationResult<UpdateCompo
   if (data.typicalUseCase !== undefined) updateData.typicalUseCase = data.typicalUseCase?.trim() || null;
   if (data.vendorLink !== undefined) updateData.vendorLink = data.vendorLink?.trim() || null;
   if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl?.trim() || null;
+  if (data.category !== undefined) updateData.category = data.category?.trim() || "Electronics Components";
+  if (data.subcategory !== undefined) updateData.subcategory = data.subcategory?.trim() || "General";
+  if (data.productType !== undefined) updateData.productType = data.productType;
+  if (data.brand !== undefined) updateData.brand = data.brand?.trim() || null;
+  const tags = parseStringArray(data.tags);
+  if (tags !== undefined) updateData.tags = tags;
+  const isBestSeller = parseBoolean(data.isBestSeller);
+  if (isBestSeller !== undefined) updateData.isBestSeller = isBestSeller;
+  const isRobomaniacItem = parseBoolean(data.isRobomaniacItem);
+  if (isRobomaniacItem !== undefined) updateData.isRobomaniacItem = isRobomaniacItem;
+  const isSoftware = parseBoolean(data.isSoftware);
+  if (isSoftware !== undefined) updateData.isSoftware = isSoftware;
   if (data.unitPriceCents !== undefined) updateData.unitPriceCents = Math.round(data.unitPriceCents);
   if (data.stockQuantity !== undefined) updateData.stockQuantity = Math.round(data.stockQuantity);
-  if (data.isActive !== undefined) updateData.isActive = Boolean(data.isActive);
+  const isActive = parseBoolean(data.isActive);
+  if (isActive !== undefined) updateData.isActive = isActive;
 
   return {
     success: true,
@@ -240,6 +336,31 @@ export function validateComponentFilters(query: any): ValidationResult<Component
 
   if (query.isActive !== undefined) {
     filters.isActive = query.isActive === "true" || query.isActive === true;
+  }
+
+  if (query.category && typeof query.category === "string") {
+    filters.category = query.category.trim();
+  }
+
+  if (query.subcategory && typeof query.subcategory === "string") {
+    filters.subcategory = query.subcategory.trim();
+  }
+
+  if (query.productType && PRODUCT_TYPES.includes(query.productType)) {
+    filters.productType = query.productType;
+  }
+
+  if (query.isBestSeller !== undefined) {
+    filters.isBestSeller = query.isBestSeller === "true" || query.isBestSeller === true;
+  }
+
+  if (query.isRobomaniacItem !== undefined) {
+    filters.isRobomaniacItem =
+      query.isRobomaniacItem === "true" || query.isRobomaniacItem === true;
+  }
+
+  if (query.isSoftware !== undefined) {
+    filters.isSoftware = query.isSoftware === "true" || query.isSoftware === true;
   }
 
   if (query.minPrice) {

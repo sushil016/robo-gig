@@ -205,8 +205,11 @@ export interface ProjectResponse {
   preBuiltSavings?: number; // If pre-built is cheaper than building
   
   thumbnailUrl?: string;
+  imageUrls: string[]; // Project gallery images (max 5)
   youtubeUrl?: string;
   youtubeEmbedUrl?: string; // Formatted for iframe
+  pdfUrls: string[]; // PDF documentation URLs (max 5)
+  externalLinks: Array<{title: string; url: string}>; // Notion, GitHub, etc.
   
   learningOutcomes: string[];
   prerequisites: string[];

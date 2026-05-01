@@ -4,3 +4,10 @@ dist/
 *.log
 .DS_Store
 /src/generated/prisma
+docs
+documentation
+QUICKSTART.md
+DOCKER_README.md
+*.sh
+Dockerfile.simple
+Dockerfile

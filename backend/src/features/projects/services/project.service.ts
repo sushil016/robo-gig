@@ -103,8 +103,12 @@ function transformProjectToResponse(project: any, includeCreator: boolean = fals
     preBuiltSavings,
     
     thumbnailUrl: project.thumbnailUrl || undefined,
+    imageUrls: project.imageUrls || [],
     youtubeUrl: project.youtubeUrl || undefined,
     youtubeEmbedUrl,
+    pdfUrls: project.pdfUrls || [],
+    externalLinks: Array.isArray(project.externalLinks) ? project.externalLinks : 
+                   typeof project.externalLinks === 'string' ? JSON.parse(project.externalLinks) : [],
     
     learningOutcomes: project.learningOutcomes || [],
     prerequisites: project.prerequisites || [],

@@ -5,6 +5,7 @@
 
 import { Router } from 'express';
 import { authenticate, authorize } from '../../../middlewares/auth.middleware.js';
+import { uploadProjectFiles } from '../../../middlewares/upload.middleware.js';
 import {
   handleListProjects,
   handleGetProjectById,
@@ -18,6 +19,10 @@ import {
   handleTogglePublish,
   handleUpdateStock
 } from '../controllers/project.controller.js';
+import { 
+  handleCreateProjectWithUploads,
+  handleUpdateProjectWithUploads 
+} from '../controllers/project-upload.controller.js';
 
 const router: Router = Router();
 
@@ -115,6 +120,34 @@ router.get('/:id', handleGetProjectById);
 router.post('/', authenticate, authorize('ADMIN'), handleCreateProject);
 
 /**
+ * POST /api/projects/upload
+ * Create a new project with file uploads (Admin only)
+ * Multipart form data with:
+ * - images: File[] (max 5 images, JPEG/PNG/WebP)
+ * - pdfs: File[] (max 5 PDFs for documentation)
+ * - thumbnail: File (1 thumbnail image)
+ * - title: string (required)
+ * - category: ProjectCategory (required)
+ * - description: string (required)
+ * - summary: string (optional)
+ * - difficulty: DifficultyLevel (required)
+ * - tags: string[] (JSON array)
+ * - prerequisites: string[] (JSON array)
+ * - learningOutcomes: string[] (JSON array)
+ * - estimatedCostCents: number
+ * - estimatedBuildTimeMinutes: number
+ * - youtubeUrl: string (optional)
+ * - externalLinks: string[] (JSON array)
+ * - componentIds: string[] (JSON array of required component IDs)
+ * - isFeatured: boolean
+ * - isPublic: boolean
+ * - preBuiltAvailable: boolean
+ * - preBuiltStock: number
+ * - preBuiltPriceCents: number
+ */
+router.post('/upload', authenticate, authorize('ADMIN'), uploadProjectFiles, handleCreateProjectWithUploads);
+
+/**
  * PUT /api/projects/:id
  * Update a project (Admin only)
  * Path params:
@@ -122,6 +155,20 @@ router.post('/', authenticate, authorize('ADMIN'), handleCreateProject);
  * Body: Same as POST but all fields optional
  */
 router.put('/:id', authenticate, authorize('ADMIN'), handleUpdateProject);
+
+/**
+ * PUT /api/projects/:id/upload
+ * Update a project with file uploads (Admin only)
+ * Multipart form data with:
+ * - images: File[] (additional images to add)
+ * - pdfs: File[] (additional PDFs to add)
+ * - thumbnail: File (replace thumbnail)
+ * - replaceImages: 'true' | 'false' (if true, replace all images; if false, append)
+ * - replacePdfs: 'true' | 'false' (if true, replace all PDFs; if false, append)
+ * - replaceLinks: 'true' | 'false' (if true, replace all links; if false, append)
+ * - All other fields from create endpoint (optional)
+ */
+router.put('/:id/upload', authenticate, authorize('ADMIN'), uploadProjectFiles, handleUpdateProjectWithUploads);
 
 /**
  * DELETE /api/projects/:id
