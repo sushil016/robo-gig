@@ -46,7 +46,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
 
   return (
     <Link href={`/components/${component.id}`}>
-      <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
+      <Card className="card-hover-bar h-full cursor-pointer group transition border border-[#d4d4b8] bg-white">
         <CardContent className="p-4">
           {/* Image */}
           <div className="relative aspect-square mb-4 bg-muted rounded-lg overflow-hidden">
@@ -58,7 +58,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
                 toast.success(isWishlisted ? 'Removed from wishlist' : 'Saved to wishlist');
               }}
               className={`absolute bottom-2 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full shadow ${
-                isWishlisted ? 'bg-blue-700 text-white' : 'bg-white text-slate-700'
+                isWishlisted ? 'bg-[#1CA2D1] text-white' : 'bg-white text-zinc-700'
               }`}
               aria-label="Toggle wishlist"
             >
@@ -68,7 +68,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
               <img
                 src={component.imageUrl}
                 alt={component.name}
-                className="h-full w-full object-contain transition-transform group-hover:scale-105"
+                className="h-full w-full object-contain"
                 loading="lazy"
               />
             ) : (
@@ -91,7 +91,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
           </div>
 
           {/* Name */}
-          <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg mb-2 line-clamp-2 text-zinc-950">
             {component.name}
           </h3>
 
@@ -103,7 +103,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
           )}
 
           <div className="mb-3 flex flex-wrap gap-2">
-            <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+            <span className="rounded-full bg-[#F5F5DC] px-2 py-1 text-xs font-semibold text-zinc-700">
               {component.subcategory || component.category}
             </span>
             {component.isBestSeller && (
@@ -127,7 +127,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
 
           {/* Price */}
           <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-2xl font-bold text-[#1CA2D1]">
               {formatPrice(component.unitPriceCents)}
             </span>
             <span className="text-sm text-muted-foreground">per unit</span>
@@ -144,7 +144,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
           <Button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className="w-full"
+            className="w-full btn-underline-white bg-[#1CA2D1] text-white hover:opacity-90"
             variant={itemQuantity > 0 ? 'secondary' : 'default'}
           >
             <ShoppingCart className="mr-2 h-4 w-4" />

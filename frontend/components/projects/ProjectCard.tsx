@@ -32,7 +32,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
   };
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 border-2">
+    <Card className="card-hover-bar h-full flex flex-col overflow-hidden transition border border-[#d4d4b8] bg-white">
       {/* Most Popular Badge - Fixed Height */}
       <div className="h-12 flex items-center px-6 border-b bg-muted/30">
         {project.isFeatured ? (
@@ -53,7 +53,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 src={project.thumbnailUrl}
                 alt={project.title}
                 fill
-                className="object-cover hover:scale-105 transition-transform duration-500"
+                className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             ) : (
@@ -76,7 +76,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           <Link href={`/projects/${project.id}`} className="block">
             <div className="text-sm leading-relaxed">
               <span className="font-semibold text-foreground">Title: </span>
-              <span className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+              <span className="text-zinc-500 hover:text-zinc-950 transition-colors cursor-pointer">
                 {project.title}
               </span>
             </div>
@@ -105,7 +105,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                     className="flex-shrink-0 group"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="border-2 border-border rounded-lg p-3 hover:border-primary hover:shadow-md transition-all duration-300 w-36 h-36 flex flex-col">
+                    <div className="border border-[#d4d4b8] rounded-lg p-3 hover:border-[#1CA2D1] hover:shadow-sm transition-all w-36 h-36 flex flex-col">
                       {/* Component Image - Fixed Square */}
                       <div className="relative w-full h-20 bg-muted rounded mb-2 overflow-hidden flex-shrink-0">
                         {pc.component.imageUrl ? (
@@ -113,7 +113,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                             src={pc.component.imageUrl}
                             alt={pc.component.name}
                             fill
-                            className="object-cover rounded group-hover:scale-110 transition-transform duration-300"
+                            className="object-cover rounded"
                             sizes="80px"
                           />
                         ) : (
@@ -175,7 +175,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         {/* Buy Button - Fixed Height */}
         <Button 
           onClick={handleBuyProject}
-          className="w-full h-12 text-base font-semibold shadow-md hover:shadow-lg transition-all" 
+          className="w-full h-12 text-base font-semibold btn-underline-white bg-[#1CA2D1] text-white hover:opacity-90"
           size="lg"
         >
           Buy Project
