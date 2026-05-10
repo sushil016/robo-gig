@@ -51,8 +51,21 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-[#D8D8C4] bg-zinc-950">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-zinc-950">
+      {/* Geometric stepped separator — beige page fades into dark footer */}
+      <svg
+        viewBox="0 0 1440 72"
+        preserveAspectRatio="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="block w-full"
+        height="72"
+      >
+        <path
+          d="M0,0 H1440 V20 L1160,20 L940,52 L0,52 Z"
+          fill="#FAFAED"
+        />
+      </svg>
+      <div className="container mx-auto px-4 pb-12 pt-6">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-[1.2fr_repeat(4,minmax(0,1fr))]">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
