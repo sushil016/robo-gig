@@ -4,20 +4,19 @@ import { bestSellingProducts } from "@/data/homepage";
 
 export function BestSellersSection() {
   return (
-    <section className="border-y border-blue-100 bg-slate-50">
+    <section className="border-y border-[#d4d4b8] bg-[#F5F5DC]">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 lg:grid-cols-[360px_minmax(0,1fr)]">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-[#1CA2D1]">
             Best Selling Products
           </p>
-          <h2 className="mt-2 text-3xl font-black">Fast-moving catalog picks</h2>
-          <p className="mt-4 text-sm font-medium leading-6 text-slate-600">
-            Components, modules, tools, and Robomaniac learning products that fit common build
-            workflows.
+          <h2 className="mt-2 text-3xl font-black text-zinc-950">Fast-moving catalog picks</h2>
+          <p className="mt-4 text-sm font-medium leading-6 text-zinc-600">
+            Components, modules, tools, and Robomaniac learning products that fit common build workflows.
           </p>
           <Link
             href="/components?isBestSeller=true"
-            className="mt-6 inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-black text-white transition hover:bg-blue-800"
+            className="btn-underline-white mt-6 inline-flex h-11 items-center rounded-md bg-[#1CA2D1] px-5 text-sm font-black text-white"
           >
             View Best Sellers
           </Link>
@@ -28,24 +27,24 @@ export function BestSellersSection() {
             <Link
               key={component.name}
               href="/components?isBestSeller=true"
-              className="group overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="card-hover-bar group overflow-hidden rounded-lg border border-[#d4d4b8] bg-white shadow-sm transition"
             >
-              <div className="relative aspect-[4/3] bg-blue-600">
+              <div className="relative aspect-[4/3] bg-[#e8e8d0]">
                 <Image
                   src="/homepage/components.png"
                   alt={component.name}
                   fill
-                  className="object-cover mix-blend-multiply opacity-80 transition group-hover:scale-105"
+                  className="object-cover opacity-80"
                   sizes="(min-width: 1280px) 280px, (min-width: 640px) 50vw, 100vw"
                 />
               </div>
               <div className="p-4">
-                <h3 className="line-clamp-2 min-h-12 text-base font-black leading-6">
+                <h3 className="line-clamp-2 min-h-12 text-base font-black leading-6 text-zinc-950">
                   {component.name}
                 </h3>
                 <div className="mt-3 flex items-center justify-between gap-3">
-                  <span className="text-xl font-black text-blue-700">{component.price}</span>
-                  <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700">
+                  <span className="text-xl font-black text-[#1CA2D1]">{component.price}</span>
+                  <span className="rounded-full bg-[#F5F5DC] px-3 py-1 text-xs font-bold text-zinc-600">
                     {component.stock}
                   </span>
                 </div>
