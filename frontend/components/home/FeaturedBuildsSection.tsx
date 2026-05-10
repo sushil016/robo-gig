@@ -1,11 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { Boxes, PackageCheck } from "lucide-react";
+import { motion } from "framer-motion";
 import { projectHighlights } from "@/data/homepage";
 
 export function FeaturedBuildsSection() {
   return (
-    <section className="mx-auto grid max-w-7xl gap-7 px-4 py-10 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="rounded-lg bg-zinc-950 p-6 text-[#F5F5DC] sm:p-8">
+    <section className="mx-auto grid max-w-7xl gap-7 px-4 py-12 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <motion.div
+        initial={{ opacity: 0, x: -32 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+        className="rounded-2xl bg-zinc-950 p-6 text-[#F5F5DC] sm:p-8"
+      >
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.18em] text-[#1CA2D1]">
@@ -15,29 +24,48 @@ export function FeaturedBuildsSection() {
           </div>
           <Link
             href="/projects"
-            className="btn-underline-white inline-flex h-11 w-fit items-center rounded-md bg-[#1CA2D1] px-5 text-sm font-black text-white"
+            className="btn-underline-white inline-flex h-11 w-fit items-center rounded-xl bg-[#1CA2D1] px-6 text-sm font-black text-white transition hover:opacity-90"
           >
             All Projects
           </Link>
         </div>
 
-        <div className="mt-7 grid gap-4 md:grid-cols-3">
+        <motion.div
+          className="mt-7 grid gap-4 md:grid-cols-3"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ staggerChildren: 0.09 }}
+        >
           {projectHighlights.map((project) => (
-            <Link
+            <motion.div
               key={project.title}
-              href={project.href}
-              className="card-hover-bar rounded-lg border border-white/10 bg-white/5 p-5 transition"
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+              }}
             >
-              <Boxes className="h-8 w-8 text-[#1CA2D1]" />
-              <h3 className="mt-5 min-h-14 text-lg font-black leading-7">{project.title}</h3>
-              <p className="mt-3 text-sm font-semibold text-zinc-400">{project.meta}</p>
-            </Link>
+              <Link
+                href={project.href}
+                className="card-hover-bar block rounded-xl border border-white/10 bg-white/5 p-5 transition"
+              >
+                <Boxes className="h-8 w-8 text-[#1CA2D1]" />
+                <h3 className="mt-5 min-h-14 text-lg font-black leading-7">{project.title}</h3>
+                <p className="mt-3 text-sm font-semibold text-zinc-400">{project.meta}</p>
+              </Link>
+            </motion.div>
           ))}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      <aside className="card-hover-bar rounded-lg border border-[#d4d4b8] bg-white p-6 shadow-sm">
-        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#F5F5DC] text-[#1CA2D1]">
+      <motion.aside
+        initial={{ opacity: 0, x: 32 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+        className="card-hover-bar rounded-2xl border border-[#d4d4b8] bg-white p-6 shadow-sm"
+      >
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F5F5DC] text-[#1CA2D1]">
           <PackageCheck className="h-6 w-6" />
         </div>
         <h2 className="mt-5 text-2xl font-black text-zinc-950">Build your BOM faster</h2>
@@ -59,7 +87,7 @@ export function FeaturedBuildsSection() {
             <span className="text-[#1CA2D1]">Kits + software</span>
           </div>
         </div>
-      </aside>
+      </motion.aside>
     </section>
   );
 }

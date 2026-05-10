@@ -1,15 +1,38 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import gsap from "gsap";
 import { homeHero, serviceTiles } from "@/data/homepage";
 import { homeIcons } from "./home-icons";
 
 export function HeroSection() {
   const Sparkles = homeIcons.sparkles;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+      tl.from(".hero-badge", { opacity: 0, y: 18, duration: 0.55 })
+        .from(".hero-h1", { opacity: 0, y: 48, duration: 0.75, skewY: 1 }, "-=0.25")
+        .from(".hero-desc", { opacity: 0, y: 24, duration: 0.55 }, "-=0.3")
+        .from(".hero-cta a", { opacity: 0, y: 20, stagger: 0.12, duration: 0.5 }, "-=0.25")
+        .from(
+          ".hero-tile",
+          { opacity: 0, y: 32, stagger: 0.08, duration: 0.5, ease: "power2.out" },
+          "-=0.15",
+        );
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section className="border-b border-[#d4d4b8] bg-[#F5F5DC]">
-      <div className="relative min-h-[540px] overflow-hidden bg-zinc-950">
+    <section className="border-b border-[#d4d4b8] bg-[#F5F5DC]" ref={containerRef}>
+      <div className="relative min-h-[560px] overflow-hidden bg-zinc-950">
         <Image
           src={homeHero.image}
           alt="Robotics controllers and electronic components"
@@ -20,28 +43,28 @@ export function HeroSection() {
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,23,42,0.98),rgba(30,64,175,0.72)_48%,rgba(14,165,233,0.18))]" />
 
-        <div className="relative flex min-h-[540px] max-w-4xl flex-col justify-center px-6 py-16 sm:px-10 lg:px-12">
-          <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-blue-100 ring-1 ring-white/20">
+        <div className="relative flex min-h-[560px] max-w-4xl flex-col justify-center px-6 py-16 sm:px-10 lg:px-12">
+          <div className="hero-badge mb-5 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-blue-100 ring-1 ring-white/20">
             <Sparkles className="h-4 w-4 text-cyan-200" />
             {homeHero.eyebrow}
           </div>
-          <h1 className="max-w-3xl text-4xl font-black leading-[1.05] text-white sm:text-5xl lg:text-7xl">
+          <h1 className="hero-h1 max-w-3xl text-4xl font-black leading-[1.05] text-white sm:text-5xl lg:text-7xl">
             {homeHero.title}
           </h1>
-          <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-blue-50 sm:text-lg">
+          <p className="hero-desc mt-5 max-w-2xl text-base font-medium leading-7 text-blue-50 sm:text-lg">
             {homeHero.description}
           </p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+          <div className="hero-cta mt-7 flex flex-col gap-3 sm:flex-row">
             <Link
               href={homeHero.primaryCta.href}
-              className="btn-underline-white inline-flex h-12 items-center justify-center rounded-md bg-[#1CA2D1] px-6 text-sm font-black text-white"
+              className="btn-underline-white inline-flex h-12 items-center justify-center rounded-xl bg-[#1CA2D1] px-7 text-sm font-black text-white transition hover:opacity-90"
             >
               {homeHero.primaryCta.label}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
             <Link
               href={homeHero.secondaryCta.href}
-              className="inline-flex h-12 items-center justify-center rounded-md border border-white/40 bg-white/10 px-6 text-sm font-black text-white transition hover:bg-white/20"
+              className="inline-flex h-12 items-center justify-center rounded-xl border border-white/40 bg-white/10 px-7 text-sm font-black text-white transition hover:bg-white/20"
             >
               {homeHero.secondaryCta.label}
             </Link>
@@ -50,7 +73,7 @@ export function HeroSection() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="overflow-x-auto rounded-lg border border-[#d4d4b8] bg-white shadow-sm scrollbar-hide">
+        <div className="overflow-x-auto rounded-2xl border border-[#d4d4b8] bg-white shadow-sm scrollbar-hide">
           <div className="grid min-w-[760px] grid-cols-4 lg:min-w-0">
             {serviceTiles.map((item) => {
               const Icon = homeIcons[item.icon];
@@ -58,7 +81,7 @@ export function HeroSection() {
                 <Link
                   key={item.title}
                   href={item.href}
-                  className="card-hover-bar flex min-h-44 items-center justify-between border-r border-[#d4d4b8] px-7 py-6 last:border-r-0 transition"
+                  className="hero-tile card-hover-bar flex min-h-44 items-center justify-between border-r border-[#d4d4b8] px-7 py-6 last:border-r-0 transition"
                 >
                   <span>
                     <span className="block text-2xl font-black leading-tight text-zinc-950 md:text-3xl">
