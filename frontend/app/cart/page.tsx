@@ -22,7 +22,7 @@ export default function CartPage() {
 
   return (
     <div className="bg-slate-50 text-slate-950">
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-slate-200 bg-[#F3F3E4]">
         <div className="mx-auto max-w-7xl px-4 py-8">
           <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">Shopping Cart</p>
           <h1 className="mt-2 text-4xl font-black">Review your order</h1>
@@ -34,7 +34,7 @@ export default function CartPage() {
 
       <main className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         {items.length === 0 ? (
-          <section className="lg:col-span-2 rounded-lg border border-slate-200 bg-white p-12 text-center shadow-sm">
+          <section className="lg:col-span-2 rounded-lg border border-slate-200 bg-[#F3F3E4] p-12 text-center shadow-sm">
             <ShoppingBag className="mx-auto h-20 w-20 text-slate-300" />
             <h2 className="mt-5 text-2xl font-black">Your cart is empty</h2>
             <p className="mt-2 text-sm font-semibold text-slate-500">Browse components and add items to start checkout.</p>
@@ -46,7 +46,7 @@ export default function CartPage() {
           <>
             <section className="space-y-4">
               {items.map((item) => (
-                <article key={item.component.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <article key={item.component.id} className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-4 shadow-sm">
                   <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)_180px]">
                     <ProductImage
                       src={item.component.imageUrl}
@@ -104,12 +104,12 @@ export default function CartPage() {
                   </div>
                 </article>
               ))}
-              <button onClick={() => clearCart()} className="h-11 w-full rounded-md border border-slate-300 bg-white text-sm font-black">
+              <button onClick={() => clearCart()} className="h-11 w-full rounded-md border border-slate-300 bg-[#F3F3E4] text-sm font-black">
                 Clear Cart
               </button>
             </section>
 
-            <aside className="h-fit rounded-lg border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24">
+            <aside className="h-fit rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm lg:sticky lg:top-24">
               <h2 className="text-xl font-black">Order Summary</h2>
               <div className="mt-5 space-y-3 text-sm font-semibold">
                 <div className="flex justify-between">

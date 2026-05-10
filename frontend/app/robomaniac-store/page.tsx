@@ -38,7 +38,7 @@ export default function RobomaniacStorePage() {
   });
 
   return (
-    <div className="bg-white text-slate-950">
+    <div className="bg-[#F3F3E4] text-slate-950">
       <section className="relative overflow-hidden bg-[#26185f]">
         <div className="absolute inset-0 opacity-20">
           <Image src="/homepage/components.png" alt="" fill className="object-cover" />
@@ -71,7 +71,7 @@ export default function RobomaniacStorePage() {
           const Icon = collection.icon;
           return (
             <div key={collection.title} className="rounded-lg border border-slate-200 bg-slate-50 p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white text-[#2f2178] shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#F3F3E4] text-[#2f2178] shadow-sm">
                 <Icon className="h-6 w-6" />
               </div>
               <h2 className="mt-5 text-xl font-black">{collection.title}</h2>
@@ -102,7 +102,7 @@ export default function RobomaniacStorePage() {
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-white p-8 text-center text-red-600">
+            <div className="rounded-lg border border-red-200 bg-[#F3F3E4] p-8 text-center text-red-600">
               Failed to load Robomaniac items.
             </div>
           )}
@@ -112,7 +112,7 @@ export default function RobomaniacStorePage() {
               <Link
                 key={product.id}
                 href={`/components/${product.id}`}
-                className="group rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group rounded-lg border border-slate-200 bg-[#F3F3E4] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-orange-500">
                   {product.imageUrl ? (

@@ -22,8 +22,11 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
         <Link href="/components" className="rounded-md border border-slate-300 px-5 py-3 text-sm font-black">
           Continue Shopping
         </Link>
-        <Link href="/profile" className="rounded-md bg-blue-700 px-5 py-3 text-sm font-black text-white">
-          View Profile
+        <Link
+          href={params.orderId ? `/orders/${params.orderId}` : "/orders"}
+          className="rounded-md bg-blue-700 px-5 py-3 text-sm font-black text-white"
+        >
+          View Order
         </Link>
       </div>
     </div>

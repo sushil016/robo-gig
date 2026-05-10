@@ -84,7 +84,7 @@ export default function ComponentDetailPage() {
   }
 
   return (
-    <div className="bg-white text-slate-950">
+    <div className="bg-[#F3F3E4] text-slate-950">
       <section className="border-b border-slate-200 bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 py-5">
           <Link href="/components" className="inline-flex items-center text-sm font-black text-blue-700">
@@ -99,7 +99,7 @@ export default function ComponentDetailPage() {
 
       <main className="mx-auto grid max-w-7xl gap-10 px-4 py-10 lg:grid-cols-[minmax(0,1fr)_480px]">
         <section>
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-6 shadow-sm">
             <ProductImage
               src={component.imageUrl}
               alt={component.name}
@@ -136,7 +136,7 @@ export default function ComponentDetailPage() {
             <p className="mt-1 text-sm font-black text-emerald-700">Inc. GST</p>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
             <div className={isOutOfStock ? "text-red-600" : "text-emerald-600"}>
               {isOutOfStock ? (
                 <p className="font-black">Out of stock</p>
@@ -203,7 +203,7 @@ export default function ComponentDetailPage() {
           </div>
 
           {(component.description || component.typicalUseCase) && (
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
               <h2 className="text-xl font-black">Product Details</h2>
               {component.description && <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">{component.description}</p>}
               {component.typicalUseCase && (
@@ -221,7 +221,7 @@ export default function ComponentDetailPage() {
             </div>
           )}
 
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
             <div className="space-y-3 text-sm font-semibold text-slate-600">
               <p className="flex items-center gap-3"><Truck className="h-5 w-5 text-blue-700" /> Free shipping above ₹500</p>
               <p className="flex items-center gap-3"><Shield className="h-5 w-5 text-blue-700" /> Secure test checkout enabled</p>

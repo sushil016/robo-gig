@@ -36,12 +36,12 @@ export function Header() {
   const [openMenu, setOpenMenu] = useState<'catalog' | 'shop' | null>(null);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#d4d4b8] bg-[#F5F5DC] text-zinc-950">
-      <div className="bg-zinc-950 px-4 py-2 text-center text-sm font-medium text-[#F5F5DC]">
+    <header className="sticky top-0 z-50 w-full border-b border-[#D8D8C4] bg-[#FAFAED] text-zinc-950">
+      <div className="bg-zinc-950 px-4 py-2 text-center text-sm font-medium text-[#FAFAED]">
         Electronics components, custom projects, Robomaniac kits, books, and BlockSquare software.
       </div>
 
-      <div className="border-b border-[#d4d4b8]">
+      <div className="border-b border-[#D8D8C4]">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <a
             href="mailto:support@roboroot.in"
@@ -52,7 +52,7 @@ export function Header() {
           </a>
 
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border-4 border-[#1CA2D1] bg-[#F5F5DC] text-2xl font-black text-[#1CA2D1]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border-4 border-[#1CA2D1] bg-[#FAFAED] text-2xl font-black text-[#1CA2D1]">
               R
             </span>
             <span className="leading-none">
@@ -66,7 +66,7 @@ export function Header() {
           </Link>
 
           <div className="hidden min-w-0 flex-1 items-center justify-center px-4 lg:flex">
-            <form action="/components" className="flex w-full max-w-xl overflow-hidden rounded-md border border-[#d4d4b8] bg-white shadow-sm">
+            <form action="/components" className="flex w-full max-w-xl overflow-hidden rounded-md border border-[#D8D8C4] bg-[#F3F3E4] shadow-sm">
               <div className="flex flex-1 items-center gap-2 px-4">
                 <Search className="h-5 w-5 text-zinc-400" />
                 <input
@@ -130,7 +130,7 @@ export function Header() {
         </div>
       </div>
 
-      <div className="hidden border-b border-[#d4d4b8] lg:block">
+      <div className="hidden border-b border-[#D8D8C4] lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4">
           <nav className="flex h-14 items-center text-sm font-bold text-zinc-800">
             <div
@@ -138,7 +138,7 @@ export function Header() {
               onMouseEnter={() => setOpenMenu('catalog')}
               onMouseLeave={() => setOpenMenu(null)}
             >
-              <Link href="/categories" className="flex h-full items-center gap-2 bg-[#e8e8d0] px-5 text-zinc-950 link-underline-left transition" onClick={() => setOpenMenu(null)}>
+              <Link href="/categories" className="flex h-full items-center gap-2 bg-[#EAEADB] px-5 text-zinc-950 link-underline-left transition" onClick={() => setOpenMenu(null)}>
                 <Menu className="h-5 w-5" />
                 All Categories
                 <ChevronDown className="h-4 w-4" />
@@ -175,7 +175,7 @@ export function Header() {
               Robotics Kits
             </Link>
           </nav>
-          <Link href="/components" className="btn-underline-white flex h-14 items-center gap-2 border-x border-[#d4d4b8] bg-[#1CA2D1] px-5 text-sm font-bold text-white transition hover:opacity-90">
+          <Link href="/components" className="btn-underline-white flex h-14 items-center gap-2 border-x border-[#D8D8C4] bg-[#1CA2D1] px-5 text-sm font-bold text-white transition hover:opacity-90">
             <ShoppingBag className="h-5 w-5" />
             Browse Store
           </Link>
@@ -184,13 +184,13 @@ export function Header() {
 
       <div className="lg:hidden">
         {mobileMenuOpen && (
-          <div className="space-y-2 border-t border-[#d4d4b8] bg-[#F5F5DC] px-4 py-4">
-            <form action="/components" className="flex overflow-hidden rounded-md border border-[#d4d4b8]">
+          <div className="space-y-2 border-t border-[#D8D8C4] bg-[#FAFAED] px-4 py-4">
+            <form action="/components" className="flex overflow-hidden rounded-md border border-[#D8D8C4]">
               <input
                 name="search"
                 aria-label="Search components"
                 placeholder="Search parts"
-                className="h-11 min-w-0 flex-1 bg-white px-3 text-sm outline-none"
+                className="h-11 min-w-0 flex-1 bg-[#F3F3E4] px-3 text-sm outline-none"
               />
               <button className="bg-[#1CA2D1] px-4 text-sm font-bold text-white">
                 <Search className="h-4 w-4" />
@@ -212,7 +212,7 @@ export function Header() {
               <Menu className="h-5 w-5" />
               All Categories
             </Link>
-            <div className="rounded-md border border-[#d4d4b8] bg-white p-3">
+            <div className="rounded-md border border-[#D8D8C4] bg-[#F3F3E4] p-3">
               <p className="mb-2 text-xs font-black uppercase tracking-wide text-[#1CA2D1]">
                 Category tree
               </p>
@@ -221,7 +221,7 @@ export function Header() {
                   <Link
                     key={group.name}
                     href={group.href}
-                    className="rounded-md bg-[#F5F5DC] px-3 py-2 text-sm font-bold text-zinc-800"
+                    className="rounded-md bg-[#FAFAED] px-3 py-2 text-sm font-bold text-zinc-800"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {group.name}
@@ -265,7 +265,7 @@ export function Header() {
             {!isAuthenticated && (
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <Link href="/login" className="block">
-                  <Button variant="outline" className="w-full border-[#d4d4b8]">
+                  <Button variant="outline" className="w-full border-[#D8D8C4]">
                     Login
                   </Button>
                 </Link>
@@ -284,10 +284,10 @@ export function Header() {
 function CatalogMegaMenu({ align = "left", onClose }: { align?: "left" | "wide"; onClose: () => void }) {
   return (
     <div className={`absolute top-full z-50 pt-2 ${align === "wide" ? "-left-72" : "left-0"}`}>
-      <div className="w-[960px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[#d4d4b8] bg-white shadow-2xl shadow-zinc-200/60">
+      <div className="w-[960px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[#D8D8C4] bg-[#F3F3E4] shadow-2xl shadow-zinc-200/60">
 
         {/* Header strip */}
-        <div className="flex items-center justify-between border-b border-[#d4d4b8] bg-[#F5F5DC] px-6 py-4">
+        <div className="flex items-center justify-between border-b border-[#D8D8C4] bg-[#FAFAED] px-6 py-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.20em] text-[#1CA2D1]">
               Browse Catalog
@@ -337,7 +337,7 @@ function CatalogMegaMenu({ align = "left", onClose }: { align?: "left" | "wide";
         </div>
 
         {/* Footer quick-links */}
-        <div className="flex items-center justify-between border-t border-[#d4d4b8] bg-[#F5F5DC]/80 px-6 py-3">
+        <div className="flex items-center justify-between border-t border-[#D8D8C4] bg-[#FAFAED]/80 px-6 py-3">
           <div className="flex items-center gap-5 text-[11px] font-bold text-zinc-500">
             <Link href="/components?isBestSeller=true" onClick={onClose} className="transition-colors hover:text-[#1CA2D1]">↗ Best Sellers</Link>
             <Link href="/projects" onClick={onClose} className="transition-colors hover:text-[#1CA2D1]">↗ Projects</Link>

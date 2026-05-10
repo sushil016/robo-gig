@@ -52,9 +52,9 @@ export function CategorySection() {
             <motion.div key={category.name} variants={cardVariants}>
               <Link
                 href={category.href}
-                className="card-hover-bar group block rounded-xl border border-[#d4d4b8] bg-white p-5 shadow-sm transition"
+                className="card-hover-bar group block rounded-xl border border-[#D8D8C4] bg-[#F3F3E4] p-5 shadow-sm transition"
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#F5F5DC] text-[#1CA2D1]">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#FAFAED] text-[#1CA2D1]">
                   <Icon className="h-7 w-7" />
                 </div>
                 <h3 className="mt-5 text-lg font-black text-zinc-950">{category.name}</h3>

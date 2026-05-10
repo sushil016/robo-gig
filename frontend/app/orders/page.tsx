@@ -30,7 +30,7 @@ export default function OrdersPage() {
 
   return (
     <div className="bg-slate-50 text-slate-950">
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-slate-200 bg-[#F3F3E4]">
         <div className="mx-auto max-w-7xl px-4 py-8">
           <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">My Orders</p>
           <h1 className="mt-2 text-4xl font-black">Order history</h1>
@@ -39,7 +39,7 @@ export default function OrdersPage() {
       <main className="mx-auto max-w-7xl px-4 py-8">
         {ordersQuery.isLoading && <p className="text-sm font-black text-slate-500">Loading orders...</p>}
         {ordersQuery.data?.length === 0 && (
-          <div className="rounded-lg border border-slate-200 bg-white p-12 text-center">
+          <div className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-12 text-center">
             <PackageCheck className="mx-auto h-16 w-16 text-slate-300" />
             <h2 className="mt-4 text-2xl font-black">No orders yet</h2>
             <Link href="/components" className="mt-6 inline-flex rounded-md bg-blue-700 px-5 py-3 text-sm font-black text-white">
@@ -49,7 +49,7 @@ export default function OrdersPage() {
         )}
         <div className="space-y-4">
           {ordersQuery.data?.map((order) => (
-            <article key={order.id} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <article key={order.id} className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-wide text-slate-500">Order ID</p>

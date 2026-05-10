@@ -32,7 +32,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
   };
 
   return (
-    <Card className="card-hover-bar h-full flex flex-col overflow-hidden transition border border-[#d4d4b8] bg-white">
+    <Card className="card-hover-bar h-full flex flex-col overflow-hidden transition border border-[#D8D8C4] bg-[#F3F3E4]">
       {/* Most Popular Badge - Fixed Height */}
       <div className="h-12 flex items-center px-6 border-b bg-muted/30">
         {project.isFeatured ? (
@@ -105,7 +105,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                     className="flex-shrink-0 group"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="border border-[#d4d4b8] rounded-lg p-3 hover:border-[#1CA2D1] hover:shadow-sm transition-all w-36 h-36 flex flex-col">
+                    <div className="border border-[#D8D8C4] rounded-lg p-3 hover:border-[#1CA2D1] hover:shadow-sm transition-all w-36 h-36 flex flex-col">
                       {/* Component Image - Fixed Square */}
                       <div className="relative w-full h-20 bg-muted rounded mb-2 overflow-hidden flex-shrink-0">
                         {pc.component.imageUrl ? (

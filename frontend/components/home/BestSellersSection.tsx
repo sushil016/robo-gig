@@ -12,7 +12,7 @@ const cardVariants = {
 
 export function BestSellersSection() {
   return (
-    <section className="border-y border-[#d4d4b8] bg-[#F5F5DC]">
+    <section className="border-y border-[#D8D8C4] bg-[#FAFAED]">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-[360px_minmax(0,1fr)]">
         <motion.div
           initial={{ opacity: 0, x: -28 }}
@@ -47,9 +47,9 @@ export function BestSellersSection() {
             <motion.div key={component.name} variants={cardVariants}>
               <Link
                 href="/components?isBestSeller=true"
-                className="card-hover-bar group block overflow-hidden rounded-xl border border-[#d4d4b8] bg-white shadow-sm transition"
+                className="card-hover-bar group block overflow-hidden rounded-xl border border-[#D8D8C4] bg-[#F3F3E4] shadow-sm transition"
               >
-                <div className="relative aspect-[4/3] bg-[#e8e8d0]">
+                <div className="relative aspect-[4/3] bg-[#EAEADB]">
                   <Image
                     src="/homepage/components.png"
                     alt={component.name}
@@ -64,7 +64,7 @@ export function BestSellersSection() {
                   </h3>
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <span className="text-xl font-black text-[#1CA2D1]">{component.price}</span>
-                    <span className="rounded-full bg-[#F5F5DC] px-3 py-1 text-xs font-bold text-zinc-600">
+                    <span className="rounded-full bg-[#FAFAED] px-3 py-1 text-xs font-bold text-zinc-600">
                       {component.stock}
                     </span>
                   </div>

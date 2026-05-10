@@ -13,7 +13,7 @@ export default function WishlistPage() {
 
   return (
     <div className="bg-slate-50 text-slate-950">
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-slate-200 bg-[#F3F3E4]">
         <div className="mx-auto max-w-7xl px-4 py-8">
           <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">Wishlist</p>
           <h1 className="mt-2 text-4xl font-black">Saved products</h1>
@@ -21,7 +21,7 @@ export default function WishlistPage() {
       </section>
       <main className="mx-auto max-w-7xl px-4 py-8">
         {items.length === 0 ? (
-          <div className="rounded-lg border border-slate-200 bg-white p-12 text-center">
+          <div className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-12 text-center">
             <Heart className="mx-auto h-16 w-16 text-slate-300" />
             <h2 className="mt-4 text-2xl font-black">No saved products</h2>
             <Link href="/components" className="mt-6 inline-flex rounded-md bg-blue-700 px-5 py-3 text-sm font-black text-white">
@@ -31,11 +31,11 @@ export default function WishlistPage() {
         ) : (
           <>
             <div className="mb-4 text-right">
-              <button onClick={clearWishlist} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-black">Clear Wishlist</button>
+              <button onClick={clearWishlist} className="rounded-md border border-slate-300 bg-[#F3F3E4] px-4 py-2 text-sm font-black">Clear Wishlist</button>
             </div>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {items.map((component) => (
-                <article key={component.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <article key={component.id} className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-4 shadow-sm">
                   <ProductImage src={component.imageUrl} alt={component.name} className="aspect-square rounded-md" imageClassName="object-contain" />
                   <Link href={`/components/${component.id}`} className="mt-4 block line-clamp-2 min-h-12 font-black hover:text-blue-700">
                     {component.name}

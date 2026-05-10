@@ -5,15 +5,37 @@
 
 'use client';
 
+import { FormEvent, useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/store/authStore';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { User, Mail, GraduationCap, Shield } from 'lucide-react';
+import { toast } from 'sonner';
+import { authApi } from '@/lib/api/auth.api';
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, isLoading } = useAuthStore();
+  const { user, isAuthenticated, isLoading, setUser } = useAuthStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    college: "",
+    avatarUrl: "",
+  });
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    setProfileForm({
+      name: user.name || "",
+      college: user.college || "",
+      avatarUrl: user.avatarUrl || "",
+    });
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -49,6 +71,27 @@ export default function ProfilePage() {
     }
     return email[0].toUpperCase();
   };
+
+  async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSaving(true);
+
+    try {
+      const updatedUser = await authApi.updateProfile({
+        name: profileForm.name,
+        college: profileForm.college,
+        avatarUrl: profileForm.avatarUrl,
+      });
+
+      setUser(updatedUser);
+      setIsEditing(false);
+      toast.success("Profile updated");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update profile");
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -88,52 +131,82 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Information Grid */}
-            <div className="grid gap-4 pt-4">
-              <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50">
-                <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Full Name</p>
-                  <p className="text-sm text-muted-foreground">
-                    {user.name || 'Not provided'}
-                  </p>
+            {isEditing ? (
+              <form onSubmit={handleProfileSubmit} className="grid gap-4 pt-4">
+                <input
+                  value={profileForm.name}
+                  onChange={(event) => setProfileForm((current) => ({ ...current, name: event.target.value }))}
+                  placeholder="Full name"
+                  className="h-11 rounded-md border border-slate-300 px-3 text-sm font-semibold outline-none focus:border-blue-600"
+                />
+                <input
+                  value={profileForm.college}
+                  onChange={(event) => setProfileForm((current) => ({ ...current, college: event.target.value }))}
+                  placeholder="College or institution"
+                  className="h-11 rounded-md border border-slate-300 px-3 text-sm font-semibold outline-none focus:border-blue-600"
+                />
+                <input
+                  value={profileForm.avatarUrl}
+                  onChange={(event) => setProfileForm((current) => ({ ...current, avatarUrl: event.target.value }))}
+                  placeholder="Avatar image URL"
+                  className="h-11 rounded-md border border-slate-300 px-3 text-sm font-semibold outline-none focus:border-blue-600"
+                />
+                <div className="flex gap-3">
+                  <Button disabled={isSaving}>{isSaving ? "Saving..." : "Save Profile"}</Button>
+                  <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                    Cancel
+                  </Button>
                 </div>
-              </div>
+              </form>
+            ) : (
+              <>
+                {/* Information Grid */}
+                <div className="grid gap-4 pt-4">
+                  <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50">
+                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Full Name</p>
+                      <p className="text-sm text-muted-foreground">
+                        {user.name || 'Not provided'}
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50">
-                <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Email Address</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                </div>
-              </div>
+                  <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50">
+                    <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Email Address</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
 
-              {user.college && (
-                <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50">
-                  <GraduationCap className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">College/University</p>
-                    <p className="text-sm text-muted-foreground">{user.college}</p>
+                  <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50">
+                    <GraduationCap className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">College/University</p>
+                      <p className="text-sm text-muted-foreground">{user.college || "Not provided"}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50">
+                    <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Account Role</p>
+                      <p className="text-sm text-muted-foreground">
+                        {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50">
-                <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Account Role</p>
-                  <p className="text-sm text-muted-foreground">
-                    {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
-                  </p>
+                <div className="flex gap-3 pt-4">
+                  <Button variant="outline" onClick={() => setIsEditing(true)}>Edit Profile</Button>
+                  <Button asChild variant="outline">
+                    <Link href="/settings">Account Settings</Link>
+                  </Button>
                 </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
-              <Button variant="outline">Edit Profile</Button>
-              <Button variant="outline">Change Password</Button>
-            </div>
+              </>
+            )}
           </CardContent>
         </Card>
 

@@ -51,31 +51,31 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-[#d4d4b8] bg-zinc-950">
+    <footer className="border-t border-[#D8D8C4] bg-zinc-950">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-[1.2fr_repeat(4,minmax(0,1fr))]">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1CA2D1] font-bold text-white">R</div>
-              <span className="text-xl font-bold text-[#F5F5DC]">RoboRoot</span>
+              <span className="text-xl font-bold text-[#FAFAED]">RoboRoot</span>
             </div>
             <p className="text-sm text-zinc-400">
               Your one-stop destination for robotics components and DIY projects.
               Empowering students and makers to build innovative solutions.
             </p>
             <div className="text-sm text-zinc-400">
-              <p className="font-semibold text-[#F5F5DC]">roboroot.in</p>
+              <p className="font-semibold text-[#FAFAED]">roboroot.in</p>
               <p>Making robotics accessible for everyone</p>
             </div>
           </div>
 
           {footerGroups.map((group) => (
             <div key={group.title}>
-              <h3 className="mb-4 font-semibold text-[#F5F5DC]">{group.title}</h3>
+              <h3 className="mb-4 font-semibold text-[#FAFAED]">{group.title}</h3>
               <ul className="space-y-2">
                 {group.links.map(([label, href]) => (
                   <li key={href}>
-                    <Link href={href} className="footer-link-underline pb-0.5 text-sm text-zinc-400 hover:text-[#F5F5DC] transition-colors">
+                    <Link href={href} className="footer-link-underline pb-0.5 text-sm text-zinc-400 hover:text-[#FAFAED] transition-colors">
                       {label}
                     </Link>
                   </li>
@@ -85,7 +85,7 @@ export function Footer() {
           ))}
 
           <div className="md:col-start-5">
-            <h4 className="mb-3 font-semibold text-[#F5F5DC]">Connect With Us</h4>
+            <h4 className="mb-3 font-semibold text-[#FAFAED]">Connect With Us</h4>
             <div className="flex space-x-3">
               <a href="https://twitter.com/roboroot" target="_blank" rel="noopener noreferrer"
                 className="rounded-md border border-zinc-800 p-2 text-zinc-400 hover:border-[#1CA2D1] hover:text-[#1CA2D1] transition-colors" aria-label="Twitter">

@@ -1,12 +1,14 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { CreditCard, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/store/authStore";
 import { formatPrice, useCartStore } from "@/lib/store/cartStore";
+import { addressApi } from "@/lib/api/address.api";
 import { orderApi } from "@/lib/api/marketplace.api";
 import { PaymentGateway, type CouponValidationResponse } from "@/lib/types/marketplace.types";
 import { ProductImage } from "@/features/marketplace/components/ProductImage";
@@ -27,6 +29,8 @@ export default function CheckoutPage() {
   const { isAuthenticated, isLoading } = useAuthStore();
   const { items, getSubtotal, clearCart } = useCartStore();
   const [address, setAddress] = useState(initialAddress);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+  const [useNewAddress, setUseNewAddress] = useState(true);
   const [paymentGateway, setPaymentGateway] = useState<PaymentGateway>(PaymentGateway.TEST);
   const [notes, setNotes] = useState("");
   const [couponCode, setCouponCode] = useState("");
@@ -35,21 +39,41 @@ export default function CheckoutPage() {
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const subtotal = getSubtotal();
+  const addressesQuery = useQuery({
+    queryKey: ["addresses"],
+    queryFn: () => addressApi.list(),
+    enabled: isAuthenticated,
+  });
+  const savedAddresses = addressesQuery.data || [];
   const shipping = subtotal >= 50000 || subtotal === 0 ? 0 : 5000;
   const discount = appliedCoupon?.discountCents || 0;
   const total = Math.max(0, subtotal + shipping - discount);
 
   const canCheckout = useMemo(() => {
-    return (
-      items.length > 0 &&
+    const hasSavedAddress = !useNewAddress && Boolean(selectedAddressId);
+    const hasNewAddress =
       address.name.trim() &&
       address.phone.trim() &&
       address.line1.trim() &&
       address.city.trim() &&
       address.state.trim() &&
-      address.pincode.trim()
+      address.pincode.trim();
+
+    return (
+      items.length > 0 &&
+      (hasSavedAddress || hasNewAddress)
     );
-  }, [address, items.length]);
+  }, [address, items.length, selectedAddressId, useNewAddress]);
+
+  useEffect(() => {
+    if (savedAddresses.length === 0 || selectedAddressId) {
+      return;
+    }
+
+    const defaultAddress = savedAddresses.find((item) => item.isDefault) || savedAddresses[0];
+    setSelectedAddressId(defaultAddress.id);
+    setUseNewAddress(false);
+  }, [savedAddresses, selectedAddressId]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,7 +95,8 @@ export default function CheckoutPage() {
           componentId: item.component.id,
           quantity: item.quantity,
         })),
-        shippingAddress: address,
+        shippingAddressId: useNewAddress ? undefined : selectedAddressId,
+        shippingAddress: useNewAddress ? address : undefined,
         paymentGateway,
         couponCode: appliedCoupon?.code,
         notes: notes || undefined,
@@ -139,7 +164,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-slate-50 text-slate-950">
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-slate-200 bg-[#F3F3E4]">
         <div className="mx-auto max-w-7xl px-4 py-8">
           <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">Checkout</p>
           <h1 className="mt-2 text-4xl font-black">Shipping and payment</h1>
@@ -153,29 +178,85 @@ export default function CheckoutPage() {
 
       <form onSubmit={handleSubmit} className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_390px]">
         <main className="space-y-6">
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
             <h2 className="text-2xl font-black">Shipping address</h2>
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              {[
-                ["name", "Full name"],
-                ["phone", "Phone number"],
-                ["line1", "Address line 1"],
-                ["line2", "Address line 2"],
-                ["city", "City"],
-                ["state", "State"],
-                ["pincode", "Pincode"],
-                ["country", "Country"],
-              ].map(([key, label]) => (
-                <input
-                  key={key}
-                  value={address[key as keyof typeof address]}
-                  onChange={(event) => setAddress((prev) => ({ ...prev, [key]: event.target.value }))}
-                  placeholder={label}
-                  className="h-11 rounded-md border border-slate-300 px-3 text-sm font-semibold outline-none focus:border-blue-600"
-                  required={!["line2"].includes(key)}
-                />
-              ))}
-            </div>
+            {addressesQuery.isLoading && (
+              <p className="mt-4 text-sm font-black text-slate-500">Loading saved addresses...</p>
+            )}
+            {savedAddresses.length > 0 && (
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                {savedAddresses.map((savedAddress) => (
+                  <label
+                    key={savedAddress.id}
+                    className={`rounded-lg border p-4 ${
+                      !useNewAddress && selectedAddressId === savedAddress.id
+                        ? "border-blue-400 bg-blue-50"
+                        : "border-slate-200"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="checkout-address"
+                      checked={!useNewAddress && selectedAddressId === savedAddress.id}
+                      onChange={() => {
+                        setUseNewAddress(false);
+                        setSelectedAddressId(savedAddress.id);
+                      }}
+                      className="sr-only"
+                    />
+                    <span className="font-black">{savedAddress.name}</span>
+                    {savedAddress.isDefault && (
+                      <span className="ml-2 rounded-full bg-blue-100 px-2 py-1 text-xs font-black text-blue-700">Default</span>
+                    )}
+                    <span className="mt-2 block text-sm font-semibold leading-6 text-slate-500">
+                      {savedAddress.line1}
+                      {savedAddress.line2 ? `, ${savedAddress.line2}` : ""}, {savedAddress.city}, {savedAddress.state} - {savedAddress.pincode}
+                    </span>
+                    <span className="mt-1 block text-xs font-bold text-slate-500">{savedAddress.phone}</span>
+                  </label>
+                ))}
+                <label
+                  className={`rounded-lg border p-4 ${
+                    useNewAddress ? "border-blue-400 bg-blue-50" : "border-slate-200"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="checkout-address"
+                    checked={useNewAddress}
+                    onChange={() => setUseNewAddress(true)}
+                    className="sr-only"
+                  />
+                  <span className="font-black">Use a new address</span>
+                  <span className="mt-2 block text-sm font-semibold text-slate-500">
+                    Add a new delivery location for this order.
+                  </span>
+                </label>
+              </div>
+            )}
+            {useNewAddress && (
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                {[
+                  ["name", "Full name"],
+                  ["phone", "Phone number"],
+                  ["line1", "Address line 1"],
+                  ["line2", "Address line 2"],
+                  ["city", "City"],
+                  ["state", "State"],
+                  ["pincode", "Pincode"],
+                  ["country", "Country"],
+                ].map(([key, label]) => (
+                  <input
+                    key={key}
+                    value={address[key as keyof typeof address]}
+                    onChange={(event) => setAddress((prev) => ({ ...prev, [key]: event.target.value }))}
+                    placeholder={label}
+                    className="h-11 rounded-md border border-slate-300 px-3 text-sm font-semibold outline-none focus:border-blue-600"
+                    required={useNewAddress && !["line2"].includes(key)}
+                  />
+                ))}
+              </div>
+            )}
             <textarea
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
@@ -184,7 +265,7 @@ export default function CheckoutPage() {
             />
           </section>
 
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
             <h2 className="text-2xl font-black">Payment</h2>
             <div className="mt-5 grid gap-3 md:grid-cols-3">
               {[
@@ -213,7 +294,7 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
             <h2 className="text-2xl font-black">Coupon</h2>
             <p className="mt-1 text-sm font-semibold text-slate-500">
               Try `ROBO10`, `STUDENT250`, or `FREESHIP` during development.
@@ -254,7 +335,7 @@ export default function CheckoutPage() {
           </section>
         </main>
 
-        <aside className="h-fit rounded-lg border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24">
+        <aside className="h-fit rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm lg:sticky lg:top-24">
           <h2 className="text-xl font-black">Order Summary</h2>
           <div className="mt-5 space-y-4">
             {items.map((item) => (

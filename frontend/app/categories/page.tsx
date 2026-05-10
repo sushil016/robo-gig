@@ -14,7 +14,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="bg-slate-50 text-slate-950">
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-slate-200 bg-[#F3F3E4]">
         <div className="mx-auto max-w-7xl px-4 py-10">
           <p className="text-sm font-black uppercase tracking-[0.18em] text-orange-600">
             Browse All Categories
@@ -35,13 +35,13 @@ export default function CategoriesPage() {
         )}
 
         {error && (
-          <div className="rounded-lg border border-red-200 bg-white p-8 text-center text-red-600">
+          <div className="rounded-lg border border-red-200 bg-[#F3F3E4] p-8 text-center text-red-600">
             Failed to load categories.
           </div>
         )}
 
         {categories && categories.length === 0 && (
-          <div className="rounded-lg border border-slate-200 bg-white p-8 text-center">
+          <div className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-8 text-center">
             <PackageSearch className="mx-auto h-10 w-10 text-slate-400" />
             <p className="mt-4 font-bold">No products found yet.</p>
           </div>
@@ -49,7 +49,7 @@ export default function CategoriesPage() {
 
         <div className="space-y-6">
           {categories?.map((category) => (
-            <section key={category.category} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <section key={category.category} className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
               <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-black">{category.category}</h2>
@@ -87,7 +87,7 @@ export default function CategoriesPage() {
                         <Link
                           key={product.id}
                           href={`/components/${product.id}`}
-                          className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-3 text-sm shadow-sm transition hover:bg-orange-50"
+                          className="flex items-center justify-between gap-3 rounded-md bg-[#F3F3E4] px-3 py-3 text-sm shadow-sm transition hover:bg-orange-50"
                         >
                           <span className="flex min-w-0 items-center gap-2">
                             <Boxes className="h-4 w-4 shrink-0 text-[#2f2178]" />

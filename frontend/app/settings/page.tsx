@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
+import { AddressBook } from "@/components/account/AddressBook";
 
 export default function SettingsPage() {
   const { user, isAuthenticated, clearAuth } = useAuthStore();
@@ -25,7 +26,7 @@ export default function SettingsPage() {
       <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">Settings</p>
       <h1 className="mt-2 text-4xl font-black">Account preferences</h1>
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
           <h2 className="text-2xl font-black">Profile</h2>
           <div className="mt-5 space-y-3 text-sm font-semibold">
             <p>Name: {user?.name || "Not provided"}</p>
@@ -36,7 +37,7 @@ export default function SettingsPage() {
             Open Profile
           </Link>
         </section>
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm">
           <h2 className="text-2xl font-black">Notifications</h2>
           <div className="mt-5 space-y-4">
             <label className="flex items-center justify-between rounded-md bg-slate-50 px-4 py-3 text-sm font-black">
@@ -49,11 +50,12 @@ export default function SettingsPage() {
             </label>
           </div>
         </section>
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+        <section className="rounded-lg border border-slate-200 bg-[#F3F3E4] p-5 shadow-sm lg:col-span-2">
           <h2 className="text-2xl font-black">Security</h2>
-          <p className="mt-2 text-sm font-semibold text-slate-500">Password changes and address book can be connected here as backend endpoints expand.</p>
+          <p className="mt-2 text-sm font-semibold text-slate-500">Logout from this browser if you are using a shared device.</p>
           <button onClick={clearAuth} className="mt-5 rounded-md bg-slate-950 px-4 py-2 text-sm font-black text-white">Logout from this device</button>
         </section>
+        <AddressBook />
       </div>
     </div>
   );
