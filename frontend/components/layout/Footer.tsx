@@ -107,7 +107,27 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-zinc-800 pt-8">
+        {/* Stepped diagonal divider */}
+        <div className="mt-12">
+          <svg
+            viewBox="0 0 1440 22"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full"
+            height="22"
+          >
+            <path
+              d="M0,4 H880 L1100,18 H1440"
+              stroke="#3f3f46"
+              strokeWidth="1.2"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+
+        <div className="pt-6">
           <div className="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
             <p className="text-sm text-zinc-500">© {currentYear} RoboRoot. All rights reserved.</p>
             <p className="text-sm text-zinc-500">Built with ❤️ for makers and innovators</p>
