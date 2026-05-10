@@ -87,11 +87,17 @@ export const useAuthStore = create<AuthStore>()(
         if (state && typeof window !== 'undefined') {
           const accessToken = localStorage.getItem('accessToken');
           const refreshToken = localStorage.getItem('refreshToken');
-          
+
           if (accessToken && refreshToken && state.user) {
             state.accessToken = accessToken;
             state.refreshToken = refreshToken;
             state.isAuthenticated = true;
+          } else {
+            // Tokens missing or expired — reset so stale persisted state doesn't linger
+            state.isAuthenticated = false;
+            state.user = null;
+            state.accessToken = null;
+            state.refreshToken = null;
           }
         }
       },

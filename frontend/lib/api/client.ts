@@ -11,6 +11,15 @@
 
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from './config';
+import { getAuthState } from '@/lib/store/authStore';
+
+function clearAuthAndTokens() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  }
+  getAuthState().clearAuth();
+}
 
 // Create axios instance
 const api = axios.create({
@@ -110,18 +119,9 @@ api.interceptors.response.use(
         : null;
 
       if (!refreshToken) {
-        // No refresh token available
         processQueue(error, null);
         isRefreshing = false;
-        
-        // Clear auth and redirect to login
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
-        }
-        
+        clearAuthAndTokens();
         return Promise.reject(error);
       }
 
@@ -154,17 +154,9 @@ api.interceptors.response.use(
         }
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - clear auth and redirect
         processQueue(refreshError, null);
         isRefreshing = false;
-
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
-        }
-
+        clearAuthAndTokens();
         return Promise.reject(refreshError);
       }
     }
