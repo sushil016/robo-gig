@@ -275,39 +275,51 @@ export function Header() {
 function CatalogMegaMenu({ align = "left" }: { align?: "left" | "wide" }) {
   return (
     <div
-      className={`invisible absolute top-full z-50 pt-3 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 ${
+      className={`invisible absolute top-full z-50 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 ${
         align === "wide" ? "-left-72" : "left-0"
       }`}
     >
-      <div className="w-[900px] max-w-[calc(100vw-2rem)] rounded-lg border border-[#d4d4b8] bg-white p-5 shadow-2xl">
-        <div className="mb-4 flex items-center justify-between border-b border-[#d4d4b8] pb-4">
+      <div className="w-[960px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[#d4d4b8] bg-white shadow-2xl shadow-zinc-200/60">
+
+        {/* Header strip */}
+        <div className="flex items-center justify-between border-b border-[#d4d4b8] bg-[#F5F5DC] px-6 py-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#1CA2D1]">
+            <p className="text-[10px] font-black uppercase tracking-[0.20em] text-[#1CA2D1]">
               Browse Catalog
             </p>
-            <p className="mt-1 text-sm font-semibold text-zinc-500">
+            <p className="mt-0.5 text-sm font-semibold text-zinc-600">
               Categories, subcategories, and Robomaniac products.
             </p>
           </div>
-          <Link href="/categories" className="btn-underline-white rounded-md bg-[#1CA2D1] px-4 py-2 text-xs font-black text-white hover:opacity-90">
+          <Link
+            href="/categories"
+            className="btn-underline-white rounded-xl bg-[#1CA2D1] px-5 py-2.5 text-xs font-black text-white transition hover:opacity-90"
+          >
             View All
           </Link>
         </div>
-        <div className="grid gap-4 md:grid-cols-4">
-          {catalogNavigationGroups.map((group) => (
+
+        {/* Category grid */}
+        <div className="grid gap-6 p-6 md:grid-cols-4">
+          {catalogNavigationGroups.map((group, idx) => (
             <div key={group.name}>
-              <Link href={group.href} className="link-underline-left pb-0.5 text-sm font-black text-zinc-950 hover:text-[#1CA2D1]">
-                {group.name}
+              <Link href={group.href} className="group/cat flex items-center gap-2 pb-0.5">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1CA2D1]/15 text-[9px] font-black text-[#1CA2D1]">
+                  {idx + 1}
+                </span>
+                <span className="text-sm font-black text-zinc-950 transition-colors group-hover/cat:text-[#1CA2D1]">
+                  {group.name}
+                </span>
               </Link>
-              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-zinc-500">
+              <p className="mb-3 pl-7 text-[11px] font-medium leading-4 text-zinc-400">
                 {group.description}
               </p>
-              <div className="mt-3 space-y-2">
+              <div className="space-y-0.5 pl-1">
                 {group.subcategories.map((subcategory) => (
                   <Link
                     key={subcategory.name}
                     href={subcategory.href}
-                    className="link-underline-left pb-0.5 block text-xs font-bold text-zinc-600 hover:text-zinc-950"
+                    className="block rounded-lg px-3 py-1.5 text-[11.5px] font-semibold text-zinc-600 transition-all hover:bg-[#1CA2D1]/10 hover:text-[#1CA2D1]"
                   >
                     {subcategory.name}
                   </Link>
@@ -315,6 +327,27 @@ function CatalogMegaMenu({ align = "left" }: { align?: "left" | "wide" }) {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Footer quick-links */}
+        <div className="flex items-center justify-between border-t border-[#d4d4b8] bg-[#F5F5DC]/80 px-6 py-3">
+          <div className="flex items-center gap-5 text-[11px] font-bold text-zinc-500">
+            <Link href="/components?isBestSeller=true" className="transition-colors hover:text-[#1CA2D1]">
+              ↗ Best Sellers
+            </Link>
+            <Link href="/projects" className="transition-colors hover:text-[#1CA2D1]">
+              ↗ Projects
+            </Link>
+            <Link href="/robomaniac-store" className="transition-colors hover:text-[#1CA2D1]">
+              ↗ Robomaniac Store
+            </Link>
+            <Link href="/components?difficulty=BEGINNER" className="transition-colors hover:text-[#1CA2D1]">
+              ↗ Starter Builds
+            </Link>
+          </div>
+          <span className="text-[10px] font-semibold text-zinc-400">
+            8 categories · 32+ subcategories
+          </span>
         </div>
       </div>
     </div>
