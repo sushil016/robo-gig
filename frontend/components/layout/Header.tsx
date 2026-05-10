@@ -27,7 +27,43 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const ANNOUNCEMENTS = [
+  { icon: '🚚', text: 'Free Shipping on orders above ₹499' },
+  { icon: '💵', text: 'Cash on Delivery Available' },
+  { icon: '🇮🇳', text: 'All Over India Supply' },
+];
+
+function AnnouncementBar() {
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setIdx((i) => (i + 1) % ANNOUNCEMENTS.length), 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  const msg = ANNOUNCEMENTS[idx];
+
+  return (
+    <div className="relative h-9 overflow-hidden bg-zinc-950">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={idx}
+          initial={{ y: 28, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -28, opacity: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0 flex items-center justify-center gap-2 text-sm font-semibold text-[#FAFAED]"
+        >
+          <span>{msg.icon}</span>
+          <span>{msg.text}</span>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export function Header() {
   const { isAuthenticated, user } = useAuthStore();
@@ -37,9 +73,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#D8D8C4] bg-[#FAFAED] text-zinc-950">
-      <div className="bg-zinc-950 px-4 py-2 text-center text-sm font-medium text-[#FAFAED]">
-        Electronics components, custom projects, Robomaniac kits, books, and BlockSquare software.
-      </div>
+      <AnnouncementBar />
 
       <div className="border-b border-[#D8D8C4]">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
@@ -66,9 +100,9 @@ export function Header() {
           </Link>
 
           <div className="hidden min-w-0 flex-1 items-center justify-center px-4 lg:flex">
-            <form action="/components" className="flex w-full max-w-xl overflow-hidden rounded-md border border-[#D8D8C4] bg-[#F3F3E4] shadow-sm">
-              <div className="flex flex-1 items-center gap-2 px-4">
-                <Search className="h-5 w-5 text-zinc-400" />
+            <form action="/components" className="flex w-full max-w-xl overflow-hidden rounded-full border border-[#D8D8C4] bg-[#F3F3E4] shadow-sm">
+              <div className="flex flex-1 items-center gap-2 pl-5 pr-2">
+                <Search className="h-4 w-4 shrink-0 text-zinc-400" />
                 <input
                   name="search"
                   aria-label="Search components"
@@ -76,7 +110,7 @@ export function Header() {
                   className="h-12 w-full bg-transparent text-sm font-medium outline-none placeholder:text-zinc-400"
                 />
               </div>
-              <button className="h-12 bg-[#1CA2D1] px-7 text-sm font-bold text-white transition hover:opacity-90">
+              <button className="my-1 mr-1 rounded-full bg-[#1CA2D1] px-6 text-sm font-bold text-white transition hover:opacity-90">
                 Search
               </button>
             </form>

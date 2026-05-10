@@ -55,7 +55,7 @@ export function HeroSection() {
 
   useEffect(() => {
     if (paused) return;
-    const id = setInterval(next, 5500);
+    const id = setInterval(next, 3000);
     return () => clearInterval(id);
   }, [paused, next]);
 
