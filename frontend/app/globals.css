@@ -97,6 +97,11 @@
   --border: #27272a;
   --input: #27272a;
   --ring: #1CA2D1;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #18181b;
   --sidebar-foreground: #F5F5DC;
   --sidebar-primary: #1CA2D1;
@@ -116,8 +121,8 @@
   }
 }
 
-/* Custom scrollbar styles */
 @layer utilities {
+  /* Custom scrollbar styles */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -125,26 +130,24 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-}
 
-@layer utilities {
-  /* Left-border slide: 3px #1CA2D1 bar slides in from left edge on hover */
+  /* Left-border slide: 3px primary bar slides in from left edge on hover */
   .card-hover-bar {
     position: relative;
-    overflow: hidden;
+    --card-hover-border: var(--primary);
   }
   .card-hover-bar::before {
     content: '';
     position: absolute;
     left: 0; top: 0; bottom: 0;
     width: 0;
-    background-color: #1CA2D1;
-    border-radius: inherit;
+    background-color: var(--primary);
     transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1;
+    z-index: 0;
+    pointer-events: none;
   }
   .card-hover-bar:hover::before { width: 3px; }
-  .card-hover-bar:hover { border-color: #1CA2D1 !important; }
+  .card-hover-bar:hover { border-color: var(--card-hover-border); }
 
   /* Underline slide from left: thin line grows under links/buttons */
   .link-underline-left {
@@ -155,7 +158,7 @@
     position: absolute;
     bottom: 0; left: 0;
     width: 0; height: 2px;
-    background-color: #1CA2D1;
+    background-color: var(--primary);
     transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .link-underline-left:hover::after { width: 100%; }
@@ -171,11 +174,11 @@
     bottom: 0; left: 0;
     width: 0; height: 2px;
     background-color: rgba(255, 255, 255, 0.6);
-    transition: width 0.30s ease;
+    transition: width 0.30s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .btn-underline-white:hover::after { width: 100%; }
 
-  /* Footer link underline — white version */
+  /* Footer link underline — background version */
   .footer-link-underline {
     position: relative;
   }
@@ -184,8 +187,8 @@
     position: absolute;
     bottom: 0; left: 0;
     width: 0; height: 1px;
-    background-color: #F5F5DC;
-    transition: width 0.28s ease;
+    background-color: var(--background);
+    transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .footer-link-underline:hover::after { width: 100%; }
 }
