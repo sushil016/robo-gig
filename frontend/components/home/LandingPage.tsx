@@ -7,7 +7,7 @@ import { ServicesSection } from "./ServicesSection";
 
 export function LandingPage() {
   return (
-    <div className="bg-white text-slate-950">
+    <div className="bg-[#F5F5DC] text-zinc-950">
       <HeroSection />
       <CategorySection />
       <ServicesSection />
