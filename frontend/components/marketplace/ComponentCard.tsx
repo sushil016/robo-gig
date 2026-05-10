@@ -145,7 +145,6 @@ export function ComponentCard({ component }: ComponentCardProps) {
             onClick={handleAddToCart}
             disabled={isOutOfStock}
             className="w-full btn-underline-white bg-[#1CA2D1] text-white hover:opacity-90"
-            variant={itemQuantity > 0 ? 'secondary' : 'default'}
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
             {itemQuantity > 0 ? `In Cart (${itemQuantity})` : 'Add to Cart'}
