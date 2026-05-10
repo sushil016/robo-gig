@@ -33,6 +33,7 @@ export function Header() {
   const { isAuthenticated, user } = useAuthStore();
   const cartItemCount = useCartStore((state) => state.getTotalItems());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<'catalog' | 'shop' | null>(null);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#d4d4b8] bg-[#F5F5DC] text-zinc-950">
@@ -132,13 +133,17 @@ export function Header() {
       <div className="hidden border-b border-[#d4d4b8] lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4">
           <nav className="flex h-14 items-center text-sm font-bold text-zinc-800">
-            <div className="group relative flex h-full items-center">
-              <Link href="/categories" className="flex h-full items-center gap-2 bg-[#e8e8d0] px-5 text-zinc-950 link-underline-left transition">
+            <div
+              className="relative flex h-full items-center"
+              onMouseEnter={() => setOpenMenu('catalog')}
+              onMouseLeave={() => setOpenMenu(null)}
+            >
+              <Link href="/categories" className="flex h-full items-center gap-2 bg-[#e8e8d0] px-5 text-zinc-950 link-underline-left transition" onClick={() => setOpenMenu(null)}>
                 <Menu className="h-5 w-5" />
                 All Categories
                 <ChevronDown className="h-4 w-4" />
               </Link>
-              <CatalogMegaMenu />
+              {openMenu === 'catalog' && <CatalogMegaMenu onClose={() => setOpenMenu(null)} />}
             </div>
             <Link href="/" className="flex h-full items-center px-5 text-[#1CA2D1] link-underline-left transition hover:text-zinc-950">
               Home
@@ -146,12 +151,16 @@ export function Header() {
             <Link href="/projects" className="flex h-full items-center px-5 link-underline-left transition hover:text-zinc-950">
               Projects
             </Link>
-            <div className="group relative flex h-full items-center">
-              <Link href="/components" className="flex h-full items-center gap-1 px-5 link-underline-left transition hover:text-zinc-950">
+            <div
+              className="relative flex h-full items-center"
+              onMouseEnter={() => setOpenMenu('shop')}
+              onMouseLeave={() => setOpenMenu(null)}
+            >
+              <Link href="/components" className="flex h-full items-center gap-1 px-5 link-underline-left transition hover:text-zinc-950" onClick={() => setOpenMenu(null)}>
                 Shop Parts
                 <ChevronDown className="h-4 w-4" />
               </Link>
-              <CatalogMegaMenu align="wide" />
+              {openMenu === 'shop' && <CatalogMegaMenu align="wide" onClose={() => setOpenMenu(null)} />}
             </div>
             <Link href="/categories" className="flex h-full items-center px-5 link-underline-left transition hover:text-zinc-950">
               Categories
@@ -272,13 +281,9 @@ export function Header() {
   );
 }
 
-function CatalogMegaMenu({ align = "left" }: { align?: "left" | "wide" }) {
+function CatalogMegaMenu({ align = "left", onClose }: { align?: "left" | "wide"; onClose: () => void }) {
   return (
-    <div
-      className={`invisible absolute top-full z-50 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 ${
-        align === "wide" ? "-left-72" : "left-0"
-      }`}
-    >
+    <div className={`absolute top-full z-50 pt-2 ${align === "wide" ? "-left-72" : "left-0"}`}>
       <div className="w-[960px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[#d4d4b8] bg-white shadow-2xl shadow-zinc-200/60">
 
         {/* Header strip */}
@@ -293,6 +298,7 @@ function CatalogMegaMenu({ align = "left" }: { align?: "left" | "wide" }) {
           </div>
           <Link
             href="/categories"
+            onClick={onClose}
             className="btn-underline-white rounded-xl bg-[#1CA2D1] px-5 py-2.5 text-xs font-black text-white transition hover:opacity-90"
           >
             View All
@@ -303,7 +309,7 @@ function CatalogMegaMenu({ align = "left" }: { align?: "left" | "wide" }) {
         <div className="grid gap-6 p-6 md:grid-cols-4">
           {catalogNavigationGroups.map((group, idx) => (
             <div key={group.name}>
-              <Link href={group.href} className="group/cat flex items-center gap-2 pb-0.5">
+              <Link href={group.href} onClick={onClose} className="group/cat flex items-center gap-2 pb-0.5">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1CA2D1]/15 text-[9px] font-black text-[#1CA2D1]">
                   {idx + 1}
                 </span>
@@ -319,6 +325,7 @@ function CatalogMegaMenu({ align = "left" }: { align?: "left" | "wide" }) {
                   <Link
                     key={subcategory.name}
                     href={subcategory.href}
+                    onClick={onClose}
                     className="block rounded-lg px-3 py-1.5 text-[11.5px] font-semibold text-zinc-600 transition-all hover:bg-[#1CA2D1]/10 hover:text-[#1CA2D1]"
                   >
                     {subcategory.name}
@@ -332,22 +339,12 @@ function CatalogMegaMenu({ align = "left" }: { align?: "left" | "wide" }) {
         {/* Footer quick-links */}
         <div className="flex items-center justify-between border-t border-[#d4d4b8] bg-[#F5F5DC]/80 px-6 py-3">
           <div className="flex items-center gap-5 text-[11px] font-bold text-zinc-500">
-            <Link href="/components?isBestSeller=true" className="transition-colors hover:text-[#1CA2D1]">
-              ↗ Best Sellers
-            </Link>
-            <Link href="/projects" className="transition-colors hover:text-[#1CA2D1]">
-              ↗ Projects
-            </Link>
-            <Link href="/robomaniac-store" className="transition-colors hover:text-[#1CA2D1]">
-              ↗ Robomaniac Store
-            </Link>
-            <Link href="/components?difficulty=BEGINNER" className="transition-colors hover:text-[#1CA2D1]">
-              ↗ Starter Builds
-            </Link>
+            <Link href="/components?isBestSeller=true" onClick={onClose} className="transition-colors hover:text-[#1CA2D1]">↗ Best Sellers</Link>
+            <Link href="/projects" onClick={onClose} className="transition-colors hover:text-[#1CA2D1]">↗ Projects</Link>
+            <Link href="/robomaniac-store" onClick={onClose} className="transition-colors hover:text-[#1CA2D1]">↗ Robomaniac Store</Link>
+            <Link href="/projects?difficulty=BEGINNER" onClick={onClose} className="transition-colors hover:text-[#1CA2D1]">↗ Starter Builds</Link>
           </div>
-          <span className="text-[10px] font-semibold text-zinc-400">
-            8 categories · 32+ subcategories
-          </span>
+          <span className="text-[10px] font-semibold text-zinc-400">8 categories · 32+ subcategories</span>
         </div>
       </div>
     </div>

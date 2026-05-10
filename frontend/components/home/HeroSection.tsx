@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
+import { motion } from "framer-motion";
 import { homeHero, serviceTiles } from "@/data/homepage";
 import { homeIcons } from "./home-icons";
 
@@ -19,12 +20,7 @@ export function HeroSection() {
       tl.from(".hero-badge", { opacity: 0, y: 18, duration: 0.55 })
         .from(".hero-h1", { opacity: 0, y: 48, duration: 0.75, skewY: 1 }, "-=0.25")
         .from(".hero-desc", { opacity: 0, y: 24, duration: 0.55 }, "-=0.3")
-        .from(".hero-cta a", { opacity: 0, y: 20, stagger: 0.12, duration: 0.5 }, "-=0.25")
-        .from(
-          ".hero-tile",
-          { opacity: 0, y: 32, stagger: 0.08, duration: 0.5, ease: "power2.out" },
-          "-=0.15",
-        );
+        .from(".hero-cta a", { opacity: 0, y: 20, stagger: 0.12, duration: 0.5 }, "-=0.25");
     }, containerRef);
 
     return () => ctx.revert();
@@ -74,28 +70,40 @@ export function HeroSection() {
 
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="overflow-x-auto rounded-2xl border border-[#d4d4b8] bg-white shadow-sm scrollbar-hide">
-          <div className="grid min-w-[760px] grid-cols-4 lg:min-w-0">
+          <motion.div
+            className="grid min-w-[760px] grid-cols-4 lg:min-w-0"
+            initial="hidden"
+            animate="show"
+            variants={{ show: { transition: { staggerChildren: 0.1, delayChildren: 0.9 } } }}
+          >
             {serviceTiles.map((item) => {
               const Icon = homeIcons[item.icon];
               return (
-                <Link
+                <motion.div
                   key={item.title}
-                  href={item.href}
-                  className="hero-tile card-hover-bar flex min-h-44 items-center justify-between border-r border-[#d4d4b8] px-7 py-6 last:border-r-0 transition"
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
+                  }}
                 >
-                  <span>
-                    <span className="block text-2xl font-black leading-tight text-zinc-950 md:text-3xl">
-                      {item.title}
+                  <Link
+                    href={item.href}
+                    className="card-hover-bar flex min-h-44 items-center justify-between border-r border-[#d4d4b8] px-7 py-6 last:border-r-0 transition"
+                  >
+                    <span>
+                      <span className="block text-2xl font-black leading-tight text-zinc-950 md:text-3xl">
+                        {item.title}
+                      </span>
+                      <span className="mt-3 block text-base font-bold text-zinc-500">
+                        {item.copy}
+                      </span>
                     </span>
-                    <span className="mt-3 block text-base font-bold text-zinc-500">
-                      {item.copy}
-                    </span>
-                  </span>
-                  <Icon className="h-16 w-16 shrink-0 text-[#1CA2D1]" />
-                </Link>
+                    <Icon className="h-16 w-16 shrink-0 text-[#1CA2D1]" />
+                  </Link>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
