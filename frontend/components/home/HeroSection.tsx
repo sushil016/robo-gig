@@ -8,8 +8,8 @@ export function HeroSection() {
   const Sparkles = homeIcons.sparkles;
 
   return (
-    <section className="border-b border-blue-100 bg-slate-50">
-      <div className="relative min-h-[540px] overflow-hidden bg-blue-950">
+    <section className="border-b border-[#d4d4b8] bg-[#F5F5DC]">
+      <div className="relative min-h-[540px] overflow-hidden bg-zinc-950">
         <Image
           src={homeHero.image}
           alt="Robotics controllers and electronic components"
@@ -34,7 +34,7 @@ export function HeroSection() {
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link
               href={homeHero.primaryCta.href}
-              className="inline-flex h-12 items-center justify-center rounded-md bg-blue-600 px-6 text-sm font-black text-white transition hover:bg-blue-700"
+              className="btn-underline-white inline-flex h-12 items-center justify-center rounded-md bg-[#1CA2D1] px-6 text-sm font-black text-white"
             >
               {homeHero.primaryCta.label}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -50,26 +50,25 @@ export function HeroSection() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="overflow-x-auto rounded-lg border border-blue-100 bg-white shadow-lg scrollbar-hide">
+        <div className="overflow-x-auto rounded-lg border border-[#d4d4b8] bg-white shadow-sm scrollbar-hide">
           <div className="grid min-w-[760px] grid-cols-4 lg:min-w-0">
             {serviceTiles.map((item) => {
               const Icon = homeIcons[item.icon];
-
               return (
                 <Link
                   key={item.title}
                   href={item.href}
-                  className={`${item.tone} flex min-h-44 items-center justify-between border-r border-white/80 px-7 py-6 last:border-r-0 transition hover:brightness-95`}
+                  className="card-hover-bar flex min-h-44 items-center justify-between border-r border-[#d4d4b8] px-7 py-6 last:border-r-0 transition"
                 >
                   <span>
-                    <span className="block text-2xl font-black leading-tight md:text-3xl">
+                    <span className="block text-2xl font-black leading-tight text-zinc-950 md:text-3xl">
                       {item.title}
                     </span>
-                    <span className="mt-3 block text-base font-bold opacity-80">
+                    <span className="mt-3 block text-base font-bold text-zinc-500">
                       {item.copy}
                     </span>
                   </span>
-                  <Icon className="h-16 w-16 shrink-0" />
+                  <Icon className="h-16 w-16 shrink-0 text-[#1CA2D1]" />
                 </Link>
               );
             })}
