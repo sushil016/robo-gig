@@ -5,6 +5,7 @@ import {
   refreshAccessToken,
   logout,
   getUserById,
+  updateUserProfile,
 } from "../services/auth.service.js";
 import {
   getGoogleAuthUrl,
@@ -209,6 +210,47 @@ export async function getMeController(req: Request, res: Response): Promise<void
     }
 
     console.error("Get user error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      code: "INTERNAL_SERVER_ERROR",
+    });
+  }
+}
+
+/**
+ * Update current user profile
+ */
+export async function updateMeController(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new ValidationError("User not authenticated");
+    }
+
+    const user = await updateUserProfile(userId, {
+      name: typeof req.body.name === "string" ? req.body.name : null,
+      college: typeof req.body.college === "string" ? req.body.college : null,
+      avatarUrl: typeof req.body.avatarUrl === "string" ? req.body.avatarUrl : null,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated",
+      data: user,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      res.status(error.statusCode).json({
+        success: false,
+        error: error.message,
+        code: error.code,
+      });
+      return;
+    }
+
+    console.error("Update user error:", error);
     res.status(500).json({
       success: false,
       error: "Internal server error",

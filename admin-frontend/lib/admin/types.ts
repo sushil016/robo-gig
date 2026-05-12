@@ -75,12 +75,20 @@ export type ProjectListResponse = {
   };
 };
 
+export type AdminOrderStatus =
+  | "PENDING_PAYMENT"
+  | "PAID"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
+
 export type AdminOrder = {
   id: string;
   userId: string;
   addressId: string;
   orderType: string;
-  status: string;
+  status: AdminOrderStatus;
   totalAmountCents: number;
   notes: string | null;
   createdAt: string;
@@ -118,6 +126,12 @@ export type AdminOrder = {
 export type AdminOrderListResponse = {
   success: boolean;
   data: AdminOrder[];
+};
+
+export type AdminOrderUpdateResponse = {
+  success: boolean;
+  data: AdminOrder;
+  message?: string;
 };
 
 export type LoginResponse = {

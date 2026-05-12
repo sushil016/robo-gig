@@ -26,6 +26,12 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface UpdateProfileRequest {
+  name?: string | null;
+  college?: string | null;
+  avatarUrl?: string | null;
+}
+
 export interface RefreshTokenRequest {
   refreshToken: string;
 }

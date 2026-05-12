@@ -10,11 +10,14 @@ import {
   emptyProjectForm,
   productTypes,
   projectCategories,
+  orderStatuses,
   sectionItems,
 } from "@/lib/admin/constants";
 import type {
   AdminOrder,
   AdminOrderListResponse,
+  AdminOrderStatus,
+  AdminOrderUpdateResponse,
   AdminSection,
   CategoryNode,
   LoginResponse,
@@ -405,6 +408,39 @@ export function AdminConsole() {
     }
   }
 
+  async function handleUpdateOrderStatus(order: AdminOrder, status: AdminOrderStatus) {
+    if (!token) {
+      setStatus("Login as admin before updating orders.");
+      return;
+    }
+
+    if (order.status === status) {
+      setStatus(`Order ${order.id} is already ${status}.`);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const payload = await apiFetch<AdminOrderUpdateResponse>(`/api/orders/admin/${order.id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          status,
+          note: `Admin changed order status to ${status}`,
+        }),
+      });
+
+      setOrders((currentOrders) =>
+        currentOrders.map((currentOrder) => (currentOrder.id === payload.data.id ? payload.data : currentOrder))
+      );
+      setStatus(`Order ${order.id} moved to ${status}`);
+      await loadDashboard();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Failed to update order status");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   async function handleSaveProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -648,7 +684,9 @@ export function AdminConsole() {
             />
           )}
 
-          {activeSection === "orders" && <OrdersView orders={orders} />}
+          {activeSection === "orders" && (
+            <OrdersView orders={orders} isLoading={isLoading} onUpdateStatus={handleUpdateOrderStatus} />
+          )}
 
           {activeSection === "media" && (
             <MediaView
@@ -666,7 +704,15 @@ export function AdminConsole() {
   );
 }
 
-function OrdersView({ orders }: { orders: AdminOrder[] }) {
+function OrdersView({
+  orders,
+  isLoading,
+  onUpdateStatus,
+}: {
+  orders: AdminOrder[];
+  isLoading: boolean;
+  onUpdateStatus: (order: AdminOrder, status: AdminOrderStatus) => void;
+}) {
   const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmountCents, 0);
 
   return (
@@ -701,6 +747,7 @@ function OrdersView({ orders }: { orders: AdminOrder[] }) {
                 <th>Payment</th>
                 <th>Total</th>
                 <th>Shipping</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -732,11 +779,25 @@ function OrdersView({ orders }: { orders: AdminOrder[] }) {
                     <p className="font-bold">{order.address?.city}, {order.address?.state}</p>
                     <p className="text-xs text-slate-500">{order.address?.phone}</p>
                   </td>
+                  <td>
+                    <select
+                      value={order.status}
+                      onChange={(event) => onUpdateStatus(order, event.target.value as AdminOrderStatus)}
+                      disabled={isLoading || order.status === "CANCELLED" || order.status === "DELIVERED"}
+                      className="h-10 rounded-md border border-slate-300 bg-white px-3 text-xs font-black disabled:bg-slate-100 disabled:text-slate-400"
+                    >
+                      {orderStatuses.map((status) => (
+                        <option key={status} value={status}>
+                          {compactType(status)}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
                 </tr>
               ))}
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-sm font-black text-slate-500">
+                  <td colSpan={7} className="py-10 text-center text-sm font-black text-slate-500">
                     No orders found yet.
                   </td>
                 </tr>

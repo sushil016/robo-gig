@@ -9,6 +9,7 @@ import {
   googleCallbackController,
   githubAuthController,
   githubCallbackController,
+  updateMeController,
 } from "../controller/auth.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 
@@ -24,6 +25,7 @@ router.post("/logout", authenticate, logoutController);
 
 // User Profile
 router.get("/me", authenticate, getMeController);
+router.patch("/me", authenticate, updateMeController);
 
 // Google OAuth
 router.get("/google", googleAuthController);

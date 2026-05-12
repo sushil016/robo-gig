@@ -1,11 +1,13 @@
 import type { Request, Response } from "express";
-import { PaymentGateway } from "../../../generated/prisma/client.js";
+import { OrderStatus, PaymentGateway } from "../../../generated/prisma/client.js";
 import {
   cancelUserOrder,
+  confirmUserOrderPayment,
   createOrder,
   getAllOrders,
   getUserOrderById,
   getUserOrders,
+  updateAdminOrderStatus,
   validateCoupon,
 } from "../services/order.service.js";
 
@@ -17,6 +19,10 @@ function userIdFromRequest(req: Request) {
   }
 
   return userId;
+}
+
+function isOrderStatus(value: unknown): value is OrderStatus {
+  return typeof value === "string" && Object.values(OrderStatus).includes(value as OrderStatus);
 }
 
 export async function createOrderHandler(req: Request, res: Response) {
@@ -70,6 +76,41 @@ export async function getAllOrdersHandler(_req: Request, res: Response) {
   });
 }
 
+export async function updateAdminOrderStatusHandler(req: Request, res: Response) {
+  try {
+    const orderId = req.params.id;
+
+    if (!orderId) {
+      res.status(400).json({
+        success: false,
+        error: "Order ID is required",
+      });
+      return;
+    }
+
+    if (!isOrderStatus(req.body.status)) {
+      res.status(400).json({
+        success: false,
+        error: "A valid order status is required",
+      });
+      return;
+    }
+
+    const order = await updateAdminOrderStatus(orderId, req.body.status, req.body.note);
+
+    res.json({
+      success: true,
+      data: order,
+      message: "Order status updated",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update order status",
+    });
+  }
+}
+
 export async function getMyOrdersHandler(req: Request, res: Response) {
   const orders = await getUserOrders(userIdFromRequest(req));
 
@@ -104,6 +145,33 @@ export async function getOrderHandler(req: Request, res: Response) {
     success: true,
     data: order,
   });
+}
+
+export async function confirmPaymentHandler(req: Request, res: Response) {
+  try {
+    const orderId = req.params.id;
+
+    if (!orderId) {
+      res.status(400).json({
+        success: false,
+        error: "Order ID is required",
+      });
+      return;
+    }
+
+    const order = await confirmUserOrderPayment(userIdFromRequest(req), orderId);
+
+    res.json({
+      success: true,
+      data: order,
+      message: "Payment confirmed",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to confirm payment",
+    });
+  }
 }
 
 export async function cancelOrderHandler(req: Request, res: Response) {

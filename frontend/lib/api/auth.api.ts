@@ -10,6 +10,7 @@ import type {
   LoginRequest,
   AuthResponse,
   User,
+  UpdateProfileRequest,
 } from '@/lib/types/auth.types';
 
 export const authApi = {
@@ -54,6 +55,15 @@ export const authApi = {
    */
   getCurrentUser: async (): Promise<User> => {
     const response = await api.get('/api/auth/me');
+    return response.data.data;
+  },
+
+  /**
+   * Update current authenticated user
+   * PATCH /api/auth/me
+   */
+  updateProfile: async (data: UpdateProfileRequest): Promise<User> => {
+    const response = await api.patch('/api/auth/me', data);
     return response.data.data;
   },
 

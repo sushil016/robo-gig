@@ -100,3 +100,12 @@ export const sectionItems = [
   { id: "media", label: "Images & Media", icon: "07" },
   { id: "settings", label: "Settings", icon: "08" },
 ] as const;
+
+export const orderStatuses = [
+  "PENDING_PAYMENT",
+  "PAID",
+  "PROCESSING",
+  "SHIPPED",
+  "DELIVERED",
+  "CANCELLED",
+] as const;

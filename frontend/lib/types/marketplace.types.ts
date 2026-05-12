@@ -136,7 +136,22 @@ export interface Address {
   state: string;
   pincode: string;
   country: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
+
+export type AddressInput = {
+  name: string;
+  phone: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country?: string;
+  isDefault?: boolean;
+};
 
 export enum OrderStatus {
   PENDING_PAYMENT = 'PENDING_PAYMENT',

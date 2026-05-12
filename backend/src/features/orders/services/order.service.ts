@@ -143,7 +143,9 @@ export async function createOrder(input: CreateOrderInput) {
     }
   }
 
-  assertAddress(input.shippingAddress);
+  if (!input.shippingAddressId) {
+    assertAddress(input.shippingAddress);
+  }
 
   const subtotalCents = normalizedItems.reduce((sum, item) => {
     const component = componentById.get(item.componentId);
@@ -288,6 +290,208 @@ export async function getAllOrders() {
   });
 }
 
+export async function updateAdminOrderStatus(orderId: string, status: OrderStatus, adminNote?: string) {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          include: {
+            component: true,
+          },
+        },
+        payments: true,
+      },
+    });
+
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    if (order.status === OrderStatus.CANCELLED) {
+      throw new Error("Cancelled orders cannot be changed");
+    }
+
+    if (order.status === OrderStatus.DELIVERED) {
+      throw new Error("Delivered orders cannot be changed");
+    }
+
+    const paidStatuses: OrderStatus[] = [
+      OrderStatus.PAID,
+      OrderStatus.PROCESSING,
+      OrderStatus.SHIPPED,
+      OrderStatus.DELIVERED,
+    ];
+    const wasStockReserved = paidStatuses.includes(order.status);
+    const shouldReserveStock = !wasStockReserved && paidStatuses.includes(status);
+    const shouldRestoreStock = wasStockReserved && status === OrderStatus.CANCELLED;
+
+    if (shouldReserveStock) {
+      for (const item of order.items) {
+        if (!item.componentId || !item.component) {
+          continue;
+        }
+
+        if (item.component.stockQuantity < item.quantity) {
+          throw new Error(`${item.description} does not have enough stock`);
+        }
+      }
+
+      const componentItems = order.items.flatMap((item) =>
+        item.componentId ? [{ componentId: item.componentId, quantity: item.quantity }] : []
+      );
+
+      await Promise.all(
+        componentItems.map((item) =>
+          tx.component.update({
+            where: { id: item.componentId },
+            data: { stockQuantity: { decrement: item.quantity } },
+          })
+        )
+      );
+    }
+
+    if (shouldRestoreStock) {
+      const componentItems = order.items.flatMap((item) =>
+        item.componentId ? [{ componentId: item.componentId, quantity: item.quantity }] : []
+      );
+
+      await Promise.all(
+        componentItems.map((item) =>
+          tx.component.update({
+            where: { id: item.componentId },
+            data: { stockQuantity: { increment: item.quantity } },
+          })
+        )
+      );
+    }
+
+    if (paidStatuses.includes(status)) {
+      await tx.payment.updateMany({
+        where: { orderId },
+        data: { status: PaymentStatus.SUCCESS },
+      });
+    }
+
+    if (status === OrderStatus.CANCELLED) {
+      await tx.payment.updateMany({
+        where: {
+          orderId,
+          status: PaymentStatus.CREATED,
+        },
+        data: { status: PaymentStatus.FAILED },
+      });
+    }
+
+    const statusNote = `Admin status update: ${order.status} -> ${status}`;
+    const nextNotes = [order.notes, adminNote?.trim() || statusNote].filter(Boolean).join("\n");
+
+    return tx.order.update({
+      where: { id: orderId },
+      data: {
+        status,
+        notes: nextNotes || null,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        address: true,
+        items: {
+          include: {
+            component: true,
+          },
+        },
+        payments: true,
+      },
+    });
+  });
+}
+
+export async function confirmUserOrderPayment(userId: string, orderId: string) {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.findFirst({
+      where: {
+        id: orderId,
+        userId,
+      },
+      include: {
+        address: true,
+        items: {
+          include: {
+            component: true,
+          },
+        },
+        payments: true,
+      },
+    });
+
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    if (order.status === OrderStatus.CANCELLED) {
+      throw new Error("Cancelled orders cannot be paid");
+    }
+
+    if (order.status !== OrderStatus.PENDING_PAYMENT) {
+      throw new Error("This order is already paid or processing");
+    }
+
+    for (const item of order.items) {
+      if (!item.componentId || !item.component) {
+        continue;
+      }
+
+      if (item.component.stockQuantity < item.quantity) {
+        throw new Error(`${item.description} does not have enough stock`);
+      }
+    }
+
+    const componentItems = order.items.flatMap((item) =>
+      item.componentId ? [{ componentId: item.componentId, quantity: item.quantity }] : []
+    );
+
+    await Promise.all(
+      componentItems.map((item) =>
+        tx.component.update({
+          where: { id: item.componentId },
+          data: { stockQuantity: { decrement: item.quantity } },
+        })
+      )
+    );
+
+    await tx.payment.updateMany({
+      where: { orderId },
+      data: {
+        status: PaymentStatus.SUCCESS,
+        gatewayTransactionId: `manual_${Date.now()}`,
+      },
+    });
+
+    return tx.order.update({
+      where: { id: orderId },
+      data: {
+        status: OrderStatus.PAID,
+        notes: [order.notes, "Customer confirmed payment from checkout payment page"].filter(Boolean).join("\n"),
+      },
+      include: {
+        address: true,
+        items: {
+          include: {
+            component: true,
+          },
+        },
+        payments: true,
+      },
+    });
+  });
+}
+
 export async function getUserOrderById(userId: string, orderId: string) {
   return prisma.order.findFirst({
     where: {
@@ -307,31 +511,71 @@ export async function getUserOrderById(userId: string, orderId: string) {
 }
 
 export async function cancelUserOrder(userId: string, orderId: string) {
-  const order = await prisma.order.findFirst({
-    where: {
-      id: orderId,
-      userId,
-    },
-  });
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.findFirst({
+      where: {
+        id: orderId,
+        userId,
+      },
+      include: {
+        items: true,
+      },
+    });
 
-  if (!order) {
-    throw new Error("Order not found");
-  }
+    if (!order) {
+      throw new Error("Order not found");
+    }
 
-  const cancellableStatuses: OrderStatus[] = [
-    OrderStatus.PENDING_PAYMENT,
-    OrderStatus.PAID,
-    OrderStatus.PROCESSING,
-  ];
+    const cancellableStatuses: OrderStatus[] = [
+      OrderStatus.PENDING_PAYMENT,
+      OrderStatus.PAID,
+      OrderStatus.PROCESSING,
+    ];
 
-  if (!cancellableStatuses.includes(order.status)) {
-    throw new Error("This order can no longer be cancelled");
-  }
+    if (!cancellableStatuses.includes(order.status)) {
+      throw new Error("This order can no longer be cancelled");
+    }
 
-  return prisma.order.update({
-    where: { id: orderId },
-    data: {
-      status: OrderStatus.CANCELLED,
-    },
+    const stockReservedStatuses: OrderStatus[] = [OrderStatus.PAID, OrderStatus.PROCESSING];
+    const shouldRestoreStock = stockReservedStatuses.includes(order.status);
+
+    if (shouldRestoreStock) {
+      const componentItems = order.items.flatMap((item) =>
+        item.componentId ? [{ componentId: item.componentId, quantity: item.quantity }] : []
+      );
+
+      await Promise.all(
+        componentItems.map((item) =>
+          tx.component.update({
+            where: { id: item.componentId },
+            data: { stockQuantity: { increment: item.quantity } },
+          })
+        )
+      );
+    }
+
+    await tx.payment.updateMany({
+      where: {
+        orderId,
+        status: PaymentStatus.CREATED,
+      },
+      data: { status: PaymentStatus.FAILED },
+    });
+
+    return tx.order.update({
+      where: { id: orderId },
+      data: {
+        status: OrderStatus.CANCELLED,
+      },
+      include: {
+        address: true,
+        items: {
+          include: {
+            component: true,
+          },
+        },
+        payments: true,
+      },
+    });
   });
 }

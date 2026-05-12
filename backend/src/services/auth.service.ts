@@ -265,6 +265,44 @@ export async function getUserById(userId: string) {
   return user;
 }
 
+export type UpdateUserProfileInput = {
+  name?: string | null;
+  college?: string | null;
+  avatarUrl?: string | null;
+};
+
+export async function updateUserProfile(userId: string, input: UpdateUserProfileInput) {
+  const name = input.name?.trim() || null;
+  const college = input.college?.trim() || null;
+  const avatarUrl = input.avatarUrl?.trim() || null;
+
+  if (avatarUrl && !/^https?:\/\/.+/i.test(avatarUrl)) {
+    throw new ValidationError("Avatar URL must start with http:// or https://");
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      name,
+      college,
+      avatarUrl,
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      avatarUrl: true,
+      college: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return user;
+}
+
 /**
  * Create a new session for user
  */

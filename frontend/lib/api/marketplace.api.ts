@@ -113,6 +113,14 @@ export const orderApi = {
   },
 
   /**
+   * Confirm payment for a pending order
+   */
+  confirmPayment: async (id: string): Promise<Order> => {
+    const response = await api.post(`/api/orders/${id}/payments/confirm`);
+    return response.data.data;
+  },
+
+  /**
    * Cancel order
    */
   cancelOrder: async (id: string): Promise<Order> => {
