@@ -9,6 +9,11 @@
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
+  /* Alert / neobrutalist token mappings */
+  --color-main: var(--main);
+  --color-mtext: var(--mtext);
+  --shadow-shadow: var(--shadow);
+  --radius-base: 5px;
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-accent: var(--sidebar-accent);
@@ -41,6 +46,18 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --animate-shine: shine var(--duration) infinite linear;
+  @keyframes shine {
+  0% {
+    background-position: 0% 0%;
+    }
+  50% {
+    background-position: 100% 100%;
+    }
+  to {
+    background-position: 0% 0%;
+    }
+  }
 }
 
 :root {
@@ -76,6 +93,10 @@
   --sidebar-accent-foreground: #09090b;
   --sidebar-border: #D8D8C4;
   --sidebar-ring: #1CA2D1;
+  /* Alert neobrutalist tokens */
+  --main: #1CA2D1;
+  --mtext: #ffffff;
+  --shadow: 4px 4px 0px 0px #09090b;
 }
 
 .dark {
@@ -191,4 +212,8 @@
     transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .footer-link-underline:hover::after { width: 100%; }
+
+  /* Alert component font utilities */
+  .font-heading { font-weight: 700; }
+  .font-base { font-weight: 500; }
 }

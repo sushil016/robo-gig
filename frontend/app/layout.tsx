@@ -3,6 +3,8 @@ import "./globals.css";
 import { QueryProvider } from "@/lib/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
+import { CookieConsent } from "@/components/ui/cookie-consent";
+import { SiteNotifications } from "@/components/ui/site-notifications";
 
 export const metadata: Metadata = {
   title: "RoboRoot - Robotics Components & DIY Projects Marketplace",
@@ -20,6 +22,8 @@ export default function RootLayout({
         <QueryProvider>
           <LayoutWrapper>{children}</LayoutWrapper>
           <Toaster />
+          <SiteNotifications />
+          <CookieConsent />
         </QueryProvider>
       </body>
     </html>
