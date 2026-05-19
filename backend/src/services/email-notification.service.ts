@@ -5,6 +5,7 @@ import {
   type EmailTemplateData,
 } from "../utils/email-templates.js";
 import { EmailEventType } from "../generated/prisma/client.js";
+import { getEmailQueue } from "../lib/queue.js";
 
 /**
  * Create an email notification record in database
@@ -122,7 +123,7 @@ export async function sendEmailNotification(
 }
 
 /**
- * Queue an email notification (async - to be processed later)
+ * Queue an email notification via BullMQ (falls back to DB-poll if Redis unavailable).
  */
 export async function queueEmailNotification(
   email: string,
@@ -130,15 +131,22 @@ export async function queueEmailNotification(
   templateData: EmailTemplateData,
   userId?: string
 ): Promise<{ id: string }> {
-  const notification = await createEmailNotification(
-    email,
-    eventType,
-    templateData,
-    userId
-  );
-  
-  console.log(`📬 Email queued: ${notification.id} (${eventType})`);
-  
+  const notification = await createEmailNotification(email, eventType, templateData, userId);
+
+  const queue = getEmailQueue();
+  if (queue) {
+    await queue.add("send-email", {
+      notificationId: notification.id,
+      email,
+      eventType,
+      templateData,
+    });
+    console.log(`[EmailQueue] Job queued: ${eventType} → ${email}`);
+  } else {
+    // BullMQ unavailable — notification stays in DB for polling worker
+    console.log(`[EmailQueue] Fallback (no Redis): ${eventType} → ${email} saved to DB`);
+  }
+
   return { id: notification.id };
 }
 

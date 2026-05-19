@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { redis } from "../lib/redis.js";
 import { hashPassword, comparePassword } from "../utils/password.js";
 import { generateTokenPair, verifyRefreshToken, getAccessTokenExpiresIn } from "../utils/jwt.js";
 import {
@@ -13,6 +14,36 @@ import {
 } from "../utils/types.js";
 import { UserRole } from "../generated/prisma/client.js";
 import { queueEmailNotification } from "./email-notification.service.js";
+import { sendVerificationEmail } from "./email-verification.service.js";
+
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_WINDOW_SECONDS = 15 * 60; // 15 minutes
+const LOCKOUT_DURATION_SECONDS = 30 * 60; // 30 minutes
+
+function loginFailKey(email: string) { return `login_fail:${email}`; }
+function loginLockKey(email: string) { return `login_lock:${email}`; }
+
+async function checkLoginLock(email: string): Promise<void> {
+  if (!redis) return;
+  const locked = await redis.get(loginLockKey(email));
+  if (locked) throw new UnauthorizedError("Account temporarily locked due to too many failed attempts. Try again in 30 minutes.");
+}
+
+async function recordFailedLogin(email: string): Promise<void> {
+  if (!redis) return;
+  const key = loginFailKey(email);
+  const count = await redis.incr(key);
+  await redis.expire(key, LOCKOUT_WINDOW_SECONDS);
+  if (count >= MAX_FAILED_ATTEMPTS) {
+    await redis.set(loginLockKey(email), "1", "EX", LOCKOUT_DURATION_SECONDS);
+    await redis.del(key);
+  }
+}
+
+async function clearLoginFailures(email: string): Promise<void> {
+  if (!redis) return;
+  await redis.del(loginFailKey(email), loginLockKey(email));
+}
 
 /**
  * Register a new user with email and password
@@ -65,20 +96,15 @@ export async function signupWithEmail(data: SignupRequest): Promise<AuthResponse
     sessionId: session.id,
   });
 
-  // Send welcome email (async - don't wait for it)
+  // Send welcome + verification emails (async - don't wait)
   queueEmailNotification(
     user.email,
     "USER_SIGNUP",
-    {
-      user: {
-        name: user.name,
-        email: user.email,
-      },
-    },
-    user.id
-  ).catch((error) => {
-    console.error("Failed to queue welcome email:", error);
-  });
+    { user: { name: user.name, email: user.email } },
+    user.id,
+  ).catch(() => null);
+
+  sendVerificationEmail(user.id, user.email).catch(() => null);
 
   return {
     user: {
@@ -99,6 +125,8 @@ export async function signupWithEmail(data: SignupRequest): Promise<AuthResponse
  * Login with email and password
  */
 export async function loginWithEmail(data: LoginRequest): Promise<AuthResponse> {
+  await checkLoginLock(data.email);
+
   // Find user
   const user = await prisma.user.findUnique({
     where: { email: data.email },
@@ -107,13 +135,9 @@ export async function loginWithEmail(data: LoginRequest): Promise<AuthResponse> 
     },
   });
 
-  if (!user) {
+  if (!user || !user.credential) {
+    await recordFailedLogin(data.email);
     throw new UnauthorizedError("Invalid email or password");
-  }
-
-  // Check if user has email credentials
-  if (!user.credential) {
-    throw new UnauthorizedError("This account doesn't use email/password login");
   }
 
   // Verify password
@@ -123,6 +147,7 @@ export async function loginWithEmail(data: LoginRequest): Promise<AuthResponse> 
   );
 
   if (!isValidPassword) {
+    await recordFailedLogin(data.email);
     throw new UnauthorizedError("Invalid email or password");
   }
 
@@ -130,6 +155,8 @@ export async function loginWithEmail(data: LoginRequest): Promise<AuthResponse> 
   if (!user.isActive) {
     throw new UnauthorizedError("Account has been deactivated");
   }
+
+  await clearLoginFailures(data.email);
 
   // Create session
   const session = await createSession(user.id);
@@ -177,22 +204,23 @@ export async function refreshAccessToken(refreshToken: string): Promise<AuthResp
     throw new UnauthorizedError("Account has been deactivated");
   }
 
-  // Verify session if sessionId exists
+  // Verify and rotate session
   if (decoded.sessionId) {
     const session = await prisma.session.findUnique({
       where: { id: decoded.sessionId },
     });
 
     if (!session) {
-      throw new UnauthorizedError("Session not found");
+      throw new UnauthorizedError("Session not found or already rotated");
     }
 
     if (session.expiresAt < new Date()) {
-      await prisma.session.delete({
-        where: { id: session.id },
-      });
+      await prisma.session.delete({ where: { id: session.id } }).catch(() => null);
       throw new UnauthorizedError("Session expired");
     }
+
+    // Rotate: delete old session before issuing new one (prevents token reuse)
+    await prisma.session.delete({ where: { id: session.id } }).catch(() => null);
   }
 
   // Create new session

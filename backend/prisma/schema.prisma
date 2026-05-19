@@ -17,6 +17,7 @@ enum UserRole {
   STUDENT
   MENTOR
   ADMIN
+  SUPER_ADMIN
 }
 
 enum AuthProvider {
@@ -89,8 +90,14 @@ enum OrderStatus {
   PENDING_PAYMENT
   PAID
   PROCESSING
+  PACKED
   SHIPPED
+  OUT_FOR_DELIVERY
   DELIVERED
+  RETURN_REQUESTED
+  RETURNED
+  REFUND_INITIATED
+  REFUNDED
   CANCELLED
 }
 
@@ -111,6 +118,7 @@ enum OrderItemType {
 enum PaymentGateway {
   PHONEPE
   STRIPE
+  RAZORPAY
   TEST
 }
 
@@ -119,6 +127,12 @@ enum PaymentStatus {
   SUCCESS
   FAILED
   REFUNDED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FLAT
+  FREE_SHIPPING
 }
 
 enum AIGenerationStatus {
@@ -181,6 +195,11 @@ enum StudentOrderStatus {
   REFUNDED
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
 enum ComponentProductType {
   ELECTRONICS_COMPONENT
   MODULE
@@ -206,6 +225,10 @@ model User {
 
   isActive Boolean @default(true)
 
+  emailVerified      Boolean   @default(false)
+  emailVerifyToken   String?   @unique
+  emailVerifyExpiry  DateTime?
+
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
@@ -228,6 +251,21 @@ model User {
   // Admin
   adminActionLogs AdminActionLog[]
   fileUploads     FileUpload[]
+
+  // Auth
+  passwordResetTokens PasswordResetToken[]
+
+  // Cart
+  cart Cart?
+
+  // Wishlist
+  wishlistItems WishlistItem[]
+
+  // PCB Quote Requests
+  pcbQuoteRequests PcbQuoteRequest[]
+
+  // Reviews
+  reviews Review[]
 }
 
 // OAuth / provider accounts (Google, GitHub, etc.)
@@ -279,6 +317,20 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime  @db.Timestamptz(6)
+  usedAt    DateTime? @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
 }
 
 model EmailNotification {
@@ -364,8 +416,9 @@ model Project {
   defaultMentorId String?
   defaultMentor   Mentor? @relation("DefaultMentorProjects", fields: [defaultMentorId], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
 
   // relations
   steps             ProjectStep[]
@@ -380,12 +433,13 @@ model Project {
   fileUploads       FileUpload[]
 
   @@index([projectType, isPublic])
-  @@index([category]) // For category filtering
+  @@index([category])
   @@index([difficulty])
-  @@index([isFeatured]) // For featured projects
-  @@index([isAIGenerated]) // For AI projects
+  @@index([isFeatured])
+  @@index([isAIGenerated])
   @@index([slug])
   @@index([publishedAt])
+  @@index([deletedAt])
 }
 
 model ProjectStep {
@@ -485,6 +539,10 @@ model Component {
   projectComponents ProjectComponent[]
   kitComponents     KitComponent[]
   orderItems        OrderItem[]
+  cartItems         CartItem[]
+  wishlistItems     WishlistItem[]
+  reviews           Review[]
+  media             ProductMedia[]
 
   @@index([isActive])
   @@index([category, subcategory])
@@ -492,6 +550,19 @@ model Component {
   @@index([isBestSeller])
   @@index([isRobomaniacItem])
   @@index([sku])
+}
+
+model ProductMedia {
+  id          String    @id @default(cuid())
+  componentId String
+  type        MediaType @default(IMAGE)
+  url         String
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+
+  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@index([componentId])
 }
 
 model Kit {
@@ -610,7 +681,16 @@ model Order {
   projectId String? // primary project context if any
   project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
+  couponId String?
+  coupon   Coupon? @relation(fields: [couponId], references: [id], onDelete: SetNull)
+
   notes String? @db.Text
+
+  // Shipping
+  trackingAwb String?
+  trackingUrl String?
+  shippedAt   DateTime? @db.Timestamptz(6)
+  deliveredAt DateTime? @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -624,6 +704,7 @@ model Order {
   @@index([userId])
   @@index([status])
   @@index([projectId])
+  @@index([couponId])
 }
 
 model OrderItem {
@@ -656,6 +737,7 @@ model Payment {
   gateway              PaymentGateway @default(PHONEPE)
   gatewayOrderId       String?
   gatewayTransactionId String?
+  gatewayPaymentId     String?
 
   amountCents Int
   status      PaymentStatus @default(CREATED)
@@ -670,6 +752,51 @@ model Payment {
   @@index([orderId])
   @@index([status])
   @@index([gatewayTransactionId])
+}
+
+// ========================================
+// CART
+// ========================================
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt @db.Timestamptz(6)
+}
+
+model CartItem {
+  id          String    @id @default(cuid())
+  cartId      String
+  cart        Cart      @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  componentId String
+  component   Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  quantity    Int       @default(1)
+  addedAt     DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@unique([cartId, componentId])
+  @@index([cartId])
+}
+
+// ========================================
+// COUPONS
+// ========================================
+
+model Coupon {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  label         String
+  discountType  DiscountType
+  discountValue Int          // percent * 100 OR paise
+  minOrderCents Int          @default(0)
+  maxUsageCount Int?
+  usageCount    Int          @default(0)
+  perUserLimit  Int?
+  expiresAt     DateTime?
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now()) @db.Timestamptz(6)
+  orders        Order[]
 }
 
 // ========================================
@@ -774,4 +901,82 @@ model FileUpload {
   @@index([projectId])
   @@index([ownerId])
   @@index([fileType])
+}
+
+// ========================================
+// PCB QUOTE REQUESTS
+// ========================================
+
+enum PcbQuoteStatus {
+  SUBMITTED
+  REVIEWING
+  QUOTED
+  ACCEPTED
+  IN_PRODUCTION
+  SHIPPED
+  CANCELLED
+}
+
+model PcbQuoteRequest {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  boardLayers     Int
+  boardSizeX      Float
+  boardSizeY      Float
+  quantity        Int
+  surfaceFinish   String
+  copperWeight    String
+  gerberFileUrl   String?
+  notes           String?        @db.Text
+  status          PcbQuoteStatus @default(SUBMITTED)
+  quotedPricePaise Int?
+  adminNotes      String?        @db.Text
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt    @db.Timestamptz(6)
+
+  @@index([userId])
+  @@index([status])
+}
+
+// ========================================
+// PRODUCT REVIEWS
+// ========================================
+
+model Review {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  componentId String?
+  component   Component? @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  rating      Int
+  title       String?
+  body        String?   @db.Text
+  isVerified  Boolean   @default(false)
+  isApproved  Boolean   @default(true)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt    @db.Timestamptz(6)
+
+  @@unique([userId, componentId])
+  @@index([componentId])
+  @@index([userId])
+  @@index([isApproved])
+}
+
+// ========================================
+// WISHLIST
+// ========================================
+
+model WishlistItem {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  componentId String
+  component   Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  addedAt     DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@unique([userId, componentId])
+  @@index([userId])
 }

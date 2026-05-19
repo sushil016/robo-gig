@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AdminProvider } from "@/core/context/AdminContext";
 
 export const metadata: Metadata = {
   title: "RoboRoot Admin",
@@ -14,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <AdminProvider>{children}</AdminProvider>
       </body>
     </html>
   );

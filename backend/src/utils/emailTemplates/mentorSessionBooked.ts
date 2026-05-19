@@ -58,8 +58,8 @@ export function mentorSessionBookedTemplate(data: {
       data.session.sessionId
         ? `
     <p class="text-center">
-      <a href="https://buildwise.com/sessions/${data.session.sessionId}">View Session Details</a> | 
-      <a href="https://buildwise.com/sessions/${data.session.sessionId}/reschedule">Reschedule</a>
+      <a href="https://roboroot.in/sessions/${data.session.sessionId}">View Session Details</a> | 
+      <a href="https://roboroot.in/sessions/${data.session.sessionId}/reschedule">Reschedule</a>
     </p>
     `
         : ""
@@ -67,12 +67,12 @@ export function mentorSessionBookedTemplate(data: {
 
     <p>
       Have questions before your session? Contact us at 
-      <a href="mailto:mentorship@buildwise.com">mentorship@buildwise.com</a>
+      <a href="mailto:mentorship@roboroot.in">mentorship@roboroot.in</a>
     </p>
 
     <p>
       Looking forward to your session! 🚀<br>
-      The BuildWise Team
+      The RoboRoot Team
     </p>
   `;
 
@@ -101,11 +101,11 @@ Prepare for Your Session:
 
 Reminder: You'll receive a reminder email 24 hours before your session.
 
-${data.session.sessionId ? `View details: https://buildwise.com/sessions/${data.session.sessionId}` : ""}
+${data.session.sessionId ? `View details: https://roboroot.in/sessions/${data.session.sessionId}` : ""}
 
-Have questions? Contact us at mentorship@buildwise.com
+Have questions? Contact us at mentorship@roboroot.in
 
 Looking forward to your session! 🚀
-The BuildWise Team`,
+The RoboRoot Team`,
   };
 }

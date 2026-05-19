@@ -11,7 +11,7 @@ export function emailVerificationTemplate(data: {
     <h1>Verify Your Email Address 📧</h1>
     <p>Hi ${data.user.name || "there"},</p>
     <p>
-      Thanks for signing up! To complete your registration and access all BuildWise features,
+      Thanks for signing up! To complete your registration and access all RoboRoot features,
       please verify your email address by clicking the button below.
     </p>
 
@@ -21,7 +21,7 @@ export function emailVerificationTemplate(data: {
 
     <div class="info-box">
       <p><strong>⏰ This link will expire in ${data.expiresIn || "24 hours"}.</strong></p>
-      <p>If you didn't create an account with BuildWise, you can safely ignore this email.</p>
+      <p>If you didn't create an account with RoboRoot, you can safely ignore this email.</p>
     </div>
 
     <p>
@@ -33,26 +33,26 @@ export function emailVerificationTemplate(data: {
 
     <p>
       Best regards,<br>
-      The BuildWise Team
+      The RoboRoot Team
     </p>
   `;
 
   return {
-    subject: "Verify Your BuildWise Email Address",
+    subject: "Verify Your RoboRoot Email Address",
     html: wrapTemplate(content),
     text: `Verify Your Email Address 📧
 
 Hi ${data.user.name || "there"},
 
-Thanks for signing up! To complete your registration and access all BuildWise features, please verify your email address.
+Thanks for signing up! To complete your registration and access all RoboRoot features, please verify your email address.
 
 Verification Link: ${data.verificationLink}
 
 ⏰ This link will expire in ${data.expiresIn || "24 hours"}.
 
-If you didn't create an account with BuildWise, you can safely ignore this email.
+If you didn't create an account with RoboRoot, you can safely ignore this email.
 
 Best regards,
-The BuildWise Team`,
+The RoboRoot Team`,
   };
 }

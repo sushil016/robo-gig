@@ -1,40 +1,22 @@
-/**
- * Register Page
- */
+"use client";
 
-import type { Metadata } from "next";
-import { RegisterForm } from "@/components/auth/RegisterForm";
+import { RegisterForm } from "@/features/auth/components/RegisterForm";
 import Link from "next/link";
-
-export const metadata: Metadata = {
-  title: "Register - BuildWise",
-  description: "Create your BuildWise account",
-};
+import Image from "next/image";
 
 export default function RegisterPage() {
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Brand header */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Create an account</h1>
-        <p className="text-muted-foreground">
-          Join BuildWise to start building amazing projects
-        </p>
+        <Link href="/" className="inline-flex justify-center">
+          <Image src="/roboroot-logo.png" alt="RoboRoot" width={160} height={44} className="h-11 w-auto" priority />
+        </Link>
+        <h1 className="text-xl font-black text-[#222222]">Create your account</h1>
+        <p className="text-sm text-zinc-500">Join thousands of makers building with RoboRoot</p>
       </div>
 
-      {/* Register Form */}
       <RegisterForm />
-
-      {/* Login link */}
-      <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="font-medium text-primary hover:underline"
-        >
-          Login
-        </Link>
-      </p>
     </div>
   );
 }

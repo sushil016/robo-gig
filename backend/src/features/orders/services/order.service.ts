@@ -1,11 +1,15 @@
 import { prisma } from "../../../lib/prisma.js";
 import {
+  EmailEventType,
   OrderItemType,
   OrderStatus,
   OrderType,
   PaymentGateway,
   PaymentStatus,
 } from "../../../generated/prisma/client.js";
+import { queueEmailNotification } from "../../../services/email-notification.service.js";
+import { validateAndApplyCoupon, type CouponDiscount } from "../../coupons/services/coupon.service.js";
+import { createShipment } from "../../shipping/services/shiprocket.service.js";
 
 type CheckoutAddress = {
   name: string;
@@ -122,43 +126,69 @@ export async function createOrder(input: CreateOrderInput) {
     quantity: Math.max(1, Math.floor(item.quantity || 1)),
   }));
 
-  const components = await prisma.component.findMany({
-    where: {
-      id: { in: normalizedItems.map((item) => item.componentId) },
-      isActive: true,
-    },
-  });
-
-  if (components.length !== normalizedItems.length) {
-    throw new Error("One or more components are not available");
-  }
-
-  const componentById = new Map(components.map((component) => [component.id, component]));
-
-  for (const item of normalizedItems) {
-    const component = componentById.get(item.componentId);
-
-    if (!component || component.stockQuantity < item.quantity) {
-      throw new Error(`${component?.name || "Component"} does not have enough stock`);
-    }
-  }
-
   if (!input.shippingAddressId) {
     assertAddress(input.shippingAddress);
   }
 
-  const subtotalCents = normalizedItems.reduce((sum, item) => {
-    const component = componentById.get(item.componentId);
-    return sum + (component?.unitPriceCents || 0) * item.quantity;
-  }, 0);
-
-  const shippingCents = subtotalCents >= 50000 ? 0 : 5000;
-  const coupon = validateCoupon(input.couponCode, subtotalCents, shippingCents);
-  const totalAmountCents = Math.max(0, subtotalCents + shippingCents - (coupon?.discountCents || 0));
   const gateway = input.paymentGateway || PaymentGateway.TEST;
   const isTestPayment = gateway === PaymentGateway.TEST;
 
   return prisma.$transaction(async (tx) => {
+    // Atomically validate stock and deduct inside the transaction to prevent overselling
+    const components = await tx.component.findMany({
+      where: {
+        id: { in: normalizedItems.map((item) => item.componentId) },
+        isActive: true,
+      },
+    });
+
+    if (components.length !== normalizedItems.length) {
+      throw new Error("One or more components are not available");
+    }
+
+    const componentById = new Map(components.map((c) => [c.id, c]));
+
+    for (const item of normalizedItems) {
+      const component = componentById.get(item.componentId);
+      if (!component || component.stockQuantity < item.quantity) {
+        throw new Error(`${component?.name || "Component"} does not have enough stock`);
+      }
+    }
+
+    // Deduct stock for all orders (reservation pattern — restored if payment fails/TTL expires)
+    await Promise.all(
+      normalizedItems.map((item) =>
+        tx.component.update({
+          where: { id: item.componentId },
+          data: { stockQuantity: { decrement: item.quantity } },
+        })
+      )
+    );
+
+    const subtotalCents = normalizedItems.reduce((sum, item) => {
+      const component = componentById.get(item.componentId);
+      return sum + (component?.unitPriceCents || 0) * item.quantity;
+    }, 0);
+
+    const shippingCents = subtotalCents >= 50000 ? 0 : 5000;
+
+    // DB-backed coupon validation (replaces hardcoded coupons)
+    let coupon: (CouponDiscount & { couponId?: string }) | CouponValidation | null = null;
+    if (input.couponCode?.trim()) {
+      try {
+        coupon = await validateAndApplyCoupon(
+          input.couponCode,
+          subtotalCents + shippingCents,
+          input.userId
+        );
+      } catch {
+        // Fall back to legacy hardcoded validation during migration period
+        coupon = validateCoupon(input.couponCode, subtotalCents, shippingCents);
+      }
+    }
+
+    const totalAmountCents = Math.max(0, subtotalCents + shippingCents - (coupon?.discountCents || 0));
+
     const address = input.shippingAddressId
       ? await tx.address.findFirstOrThrow({
           where: {
@@ -187,6 +217,7 @@ export async function createOrder(input: CreateOrderInput) {
         orderType: OrderType.COMPONENTS_ONLY,
         status: isTestPayment ? OrderStatus.PAID : OrderStatus.PENDING_PAYMENT,
         totalAmountCents,
+        couponId: (coupon as CouponDiscount | null)?.couponId ?? null,
         notes: [
           input.notes,
           coupon ? `Coupon ${coupon.code}: -₹${coupon.discountCents / 100}` : null,
@@ -234,21 +265,40 @@ export async function createOrder(input: CreateOrderInput) {
       },
     });
 
-    if (isTestPayment) {
-      await Promise.all(
-        normalizedItems.map((item) =>
-          tx.component.update({
-            where: { id: item.componentId },
-            data: { stockQuantity: { decrement: item.quantity } },
-          })
-        )
-      );
-    }
-
     return {
       order,
       paymentUrl: isTestPayment ? undefined : `/checkout/payment/${order.id}`,
     };
+  }).then(async (result) => {
+    // Queue order confirmation email after the transaction commits
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: input.userId },
+        select: { email: true, name: true },
+      });
+      if (user) {
+        await queueEmailNotification(
+          user.email,
+          EmailEventType.ORDER_CREATED,
+          {
+            order: {
+              orderId: result.order.id,
+              total: result.order.totalAmountCents / 100,
+              items: result.order.items.map((item) => ({
+                name: item.description,
+                quantity: item.quantity,
+                price: item.unitPriceCents / 100,
+              })),
+            },
+            user: { name: user.name || user.email },
+          },
+          input.userId
+        );
+      }
+    } catch {
+      // Never fail order creation because of email failure
+    }
+    return result;
   });
 }
 
@@ -316,15 +366,23 @@ export async function updateAdminOrderStatus(orderId: string, status: OrderStatu
       throw new Error("Delivered orders cannot be changed");
     }
 
-    const paidStatuses: OrderStatus[] = [
+    // Stock is deducted at order creation — all statuses except CANCELLED/RETURNED/REFUNDED have stock held
+    const stockHeldStatuses: OrderStatus[] = [
+      OrderStatus.PENDING_PAYMENT,
       OrderStatus.PAID,
       OrderStatus.PROCESSING,
+      OrderStatus.PACKED,
       OrderStatus.SHIPPED,
-      OrderStatus.DELIVERED,
+      OrderStatus.OUT_FOR_DELIVERY,
     ];
-    const wasStockReserved = paidStatuses.includes(order.status);
-    const shouldReserveStock = !wasStockReserved && paidStatuses.includes(status);
-    const shouldRestoreStock = wasStockReserved && status === OrderStatus.CANCELLED;
+    const wasStockReserved = stockHeldStatuses.includes(order.status);
+    // Never double-deduct — stock is always reserved from order creation
+    const shouldReserveStock = false;
+    const shouldRestoreStock =
+      wasStockReserved &&
+      (status === OrderStatus.CANCELLED ||
+        status === OrderStatus.RETURNED ||
+        status === OrderStatus.REFUNDED);
 
     if (shouldReserveStock) {
       for (const item of order.items) {
@@ -366,7 +424,11 @@ export async function updateAdminOrderStatus(orderId: string, status: OrderStatu
       );
     }
 
-    if (paidStatuses.includes(status)) {
+    const confirmedStatuses: OrderStatus[] = [
+      OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.PACKED,
+      OrderStatus.SHIPPED, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERED,
+    ];
+    if (confirmedStatuses.includes(status)) {
       await tx.payment.updateMany({
         where: { orderId },
         data: { status: PaymentStatus.SUCCESS },
@@ -409,16 +471,69 @@ export async function updateAdminOrderStatus(orderId: string, status: OrderStatu
         payments: true,
       },
     });
+  }).then(async (updatedOrder) => {
+    // Auto-create Shiprocket shipment when admin packs the order
+    if (status === OrderStatus.PACKED && !updatedOrder.trackingAwb) {
+      createShipment(updatedOrder.id).catch((err: Error) =>
+        console.error(`[OrderService] Auto-shipment failed for ${updatedOrder.id}: ${err.message}`)
+      );
+    }
+
+    // Queue customer email after the transaction commits
+    try {
+      const userEmail = updatedOrder.user?.email;
+      if (userEmail) {
+        const emailEventMap: Partial<Record<OrderStatus, EmailEventType>> = {
+          [OrderStatus.PAID]: EmailEventType.ORDER_PAID,
+          [OrderStatus.SHIPPED]: EmailEventType.ORDER_SHIPPED,
+          [OrderStatus.DELIVERED]: EmailEventType.ORDER_DELIVERED,
+          [OrderStatus.CANCELLED]: EmailEventType.ORDER_CANCELLED,
+        };
+        const eventType = emailEventMap[status];
+        if (eventType) {
+          await queueEmailNotification(
+            userEmail,
+            eventType,
+            {
+              order: {
+                orderId: updatedOrder.id,
+                total: updatedOrder.totalAmountCents / 100,
+              },
+              user: { name: updatedOrder.user?.name || userEmail },
+            },
+            updatedOrder.userId
+          );
+        }
+      }
+    } catch {
+      // Never fail admin action because of email failure
+    }
+    return updatedOrder;
   });
 }
 
 export async function confirmUserOrderPayment(userId: string, orderId: string) {
+  // Pre-check ownership outside transaction for clear 404 vs 403 errors
+  const ownerCheck = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { userId: true, status: true },
+  });
+
+  if (!ownerCheck) {
+    const err = new Error("Order not found") as Error & { statusCode: number };
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (ownerCheck.userId !== userId) {
+    const err = new Error("Forbidden: you do not own this order") as Error & { statusCode: number };
+    err.statusCode = 403;
+    throw err;
+  }
+
   return prisma.$transaction(async (tx) => {
-    const order = await tx.order.findFirst({
-      where: {
-        id: orderId,
-        userId,
-      },
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
       include: {
         address: true,
         items: {
@@ -442,29 +557,7 @@ export async function confirmUserOrderPayment(userId: string, orderId: string) {
       throw new Error("This order is already paid or processing");
     }
 
-    for (const item of order.items) {
-      if (!item.componentId || !item.component) {
-        continue;
-      }
-
-      if (item.component.stockQuantity < item.quantity) {
-        throw new Error(`${item.description} does not have enough stock`);
-      }
-    }
-
-    const componentItems = order.items.flatMap((item) =>
-      item.componentId ? [{ componentId: item.componentId, quantity: item.quantity }] : []
-    );
-
-    await Promise.all(
-      componentItems.map((item) =>
-        tx.component.update({
-          where: { id: item.componentId },
-          data: { stockQuantity: { decrement: item.quantity } },
-        })
-      )
-    );
-
+    // Stock was already reserved/deducted at order creation — just update payment + order status
     await tx.payment.updateMany({
       where: { orderId },
       data: {
@@ -489,6 +582,31 @@ export async function confirmUserOrderPayment(userId: string, orderId: string) {
         payments: true,
       },
     });
+  }).then(async (paidOrder) => {
+    // Queue payment confirmation email after the transaction commits
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: paidOrder.userId },
+        select: { email: true, name: true },
+      });
+      if (user) {
+        await queueEmailNotification(
+          user.email,
+          EmailEventType.ORDER_PAID,
+          {
+            order: {
+              orderId: paidOrder.id,
+              total: paidOrder.totalAmountCents / 100,
+            },
+            user: { name: user.name || user.email },
+          },
+          paidOrder.userId
+        );
+      }
+    } catch {
+      // Never fail the payment confirm because of email failure
+    }
+    return paidOrder;
   });
 }
 
@@ -530,13 +648,20 @@ export async function cancelUserOrder(userId: string, orderId: string) {
       OrderStatus.PENDING_PAYMENT,
       OrderStatus.PAID,
       OrderStatus.PROCESSING,
+      OrderStatus.PACKED,
     ];
 
     if (!cancellableStatuses.includes(order.status)) {
       throw new Error("This order can no longer be cancelled");
     }
 
-    const stockReservedStatuses: OrderStatus[] = [OrderStatus.PAID, OrderStatus.PROCESSING];
+    // Stock is deducted at order creation time for ALL orders (including PENDING_PAYMENT)
+    const stockReservedStatuses: OrderStatus[] = [
+      OrderStatus.PENDING_PAYMENT,
+      OrderStatus.PAID,
+      OrderStatus.PROCESSING,
+      OrderStatus.PACKED,
+    ];
     const shouldRestoreStock = stockReservedStatuses.includes(order.status);
 
     if (shouldRestoreStock) {

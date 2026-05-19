@@ -5,6 +5,7 @@
 
 import { Router } from 'express';
 import { authenticate, authorize } from '../../../middlewares/auth.middleware.js';
+import { cacheResponse } from '../../../middlewares/cache.middleware.js';
 import { uploadProjectFiles } from '../../../middlewares/upload.middleware.js';
 import {
   handleListProjects,
@@ -52,7 +53,7 @@ const router: Router = Router();
  * - sortBy: 'createdAt' | 'updatedAt' | 'title' | 'viewCount' | 'buildCount' | 'averageRating' | 'estimatedCostCents'
  * - sortOrder: 'asc' | 'desc' (default: 'desc')
  */
-router.get('/', handleListProjects);
+router.get('/', cacheResponse(60), handleListProjects);
 
 /**
  * GET /api/projects/categories

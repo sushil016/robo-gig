@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { QueryProvider } from "@/lib/providers/query-provider";
+import { AppProvider } from "@/providers/AppProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { CookieConsent } from "@/components/ui/cookie-consent";
@@ -19,12 +19,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <QueryProvider>
+        <AppProvider>
           <LayoutWrapper>{children}</LayoutWrapper>
           <Toaster />
           <SiteNotifications />
           <CookieConsent />
-        </QueryProvider>
+        </AppProvider>
       </body>
     </html>
   );

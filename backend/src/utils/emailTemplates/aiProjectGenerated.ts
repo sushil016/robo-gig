@@ -40,7 +40,7 @@ export function aiProjectGeneratedTemplate(data: {
     ${componentsHtml}
 
     <p class="text-center">
-      <a href="https://buildwise.com/projects/${data.project.projectId}" class="button">View Full Project Details</a>
+      <a href="https://roboroot.in/projects/${data.project.projectId}" class="button">View Full Project Details</a>
     </p>
 
     <h2>What's Next?</h2>
@@ -56,18 +56,18 @@ export function aiProjectGeneratedTemplate(data: {
     </p>
 
     <p class="text-center">
-      <a href="https://buildwise.com/projects/${data.project.projectId}/components">Shop Components</a> | 
-      <a href="https://buildwise.com/mentors">Find a Mentor</a>
+      <a href="https://roboroot.in/projects/${data.project.projectId}/components">Shop Components</a> | 
+      <a href="https://roboroot.in/mentors">Find a Mentor</a>
     </p>
 
     <p>
       Questions about the project? Contact us at 
-      <a href="mailto:projects@buildwise.com">projects@buildwise.com</a>
+      <a href="mailto:projects@roboroot.in">projects@roboroot.in</a>
     </p>
 
     <p>
       Happy Building! 🔧⚡<br>
-      The BuildWise Team
+      The RoboRoot Team
     </p>
   `;
 
@@ -93,7 +93,7 @@ ${data.project.componentsNeeded.map((c) => `• ${c}`).join("\n")}`
     : ""
 }
 
-View full project: https://buildwise.com/projects/${data.project.projectId}
+View full project: https://roboroot.in/projects/${data.project.projectId}
 
 What's Next?
 📖 Review the project details and instructions
@@ -101,12 +101,12 @@ What's Next?
 🔧 Start building following the guide
 👨‍🏫 Book a mentor session if you need help
 
-Shop Components: https://buildwise.com/projects/${data.project.projectId}/components
-Find a Mentor: https://buildwise.com/mentors
+Shop Components: https://roboroot.in/projects/${data.project.projectId}/components
+Find a Mentor: https://roboroot.in/mentors
 
-Questions? Contact us at projects@buildwise.com
+Questions? Contact us at projects@roboroot.in
 
 Happy Building! 🔧⚡
-The BuildWise Team`,
+The RoboRoot Team`,
   };
 }

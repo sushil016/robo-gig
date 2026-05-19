@@ -21,22 +21,23 @@ export function authenticate(
   next: NextFunction
 ): void {
   try {
-    // Get token from Authorization header
+    // Accept token from httpOnly cookie (preferred) or Authorization header (admin panel / mobile)
+    const cookieToken = (req.cookies as Record<string, string>)?.accessToken;
     const authHeader = req.headers.authorization;
+    let token: string | undefined;
 
-    if (!authHeader) {
-      throw new UnauthorizedError("No authorization header provided");
+    if (cookieToken) {
+      token = cookieToken;
+    } else if (authHeader) {
+      const parts = authHeader.split(" ");
+      if (parts.length !== 2 || parts[0] !== "Bearer") {
+        throw new UnauthorizedError("Invalid authorization header format. Use: Bearer <token>");
+      }
+      token = parts[1];
     }
 
-    // Check if it's a Bearer token
-    const parts = authHeader.split(" ");
-    if (parts.length !== 2 || parts[0] !== "Bearer") {
-      throw new UnauthorizedError("Invalid authorization header format. Use: Bearer <token>");
-    }
-
-    const token = parts[1];
     if (!token) {
-      throw new UnauthorizedError("No token provided");
+      throw new UnauthorizedError("No authorization token provided");
     }
 
     // Verify and decode token
@@ -74,7 +75,12 @@ export function authorize(...allowedRoles: string[]) {
         throw new UnauthorizedError("User not authenticated");
       }
 
-      if (!allowedRoles.includes(req.user.role)) {
+      // SUPER_ADMIN inherits all ADMIN permissions
+      const effectiveRoles = allowedRoles.includes("ADMIN")
+        ? [...allowedRoles, "SUPER_ADMIN"]
+        : allowedRoles;
+
+      if (!effectiveRoles.includes(req.user.role)) {
         throw new ForbiddenError(
           `Access denied. Required roles: ${allowedRoles.join(", ")}`
         );

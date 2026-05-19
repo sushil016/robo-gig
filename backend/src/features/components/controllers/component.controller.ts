@@ -11,6 +11,12 @@ import {
   validateComponentFilters,
 } from "../validators/component.validator.js";
 import * as componentService from "../services/component.service.js";
+import { cacheInvalidate } from "../../../lib/redis.js";
+import { logAdminAction } from "../../../services/admin-action-log.service.js";
+
+async function bustComponentCache() {
+  await cacheInvalidate("http:/api/components*");
+}
 
 /**
  * Create a new component
@@ -30,6 +36,8 @@ export async function createComponentHandler(
     }
 
     const component = await componentService.createComponent(validation.data);
+    void bustComponentCache();
+    void logAdminAction(req.user!.userId, "CREATE_PRODUCT", "PRODUCT", component.id);
 
     res.status(201).json({
       success: true,
@@ -143,6 +151,8 @@ export async function updateComponentHandler(
     }
 
     const component = await componentService.updateComponent(id, validation.data!);
+    void bustComponentCache();
+    void logAdminAction(req.user!.userId, "UPDATE_PRODUCT", "PRODUCT", id);
 
     res.status(200).json({
       success: true,
@@ -171,6 +181,8 @@ export async function deleteComponentHandler(
     }
 
     const result = await componentService.deleteComponent(id);
+    void bustComponentCache();
+    void logAdminAction(req.user!.userId, "DELETE_PRODUCT", "PRODUCT", id);
 
     res.status(200).json({
       success: true,

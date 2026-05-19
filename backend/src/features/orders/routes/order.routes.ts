@@ -10,6 +10,7 @@ import {
   updateAdminOrderStatusHandler,
   validateCouponHandler,
 } from "../controllers/order.controller.js";
+import { generateInvoicePdf } from "../../invoices/invoice.service.js";
 
 const router: ExpressRouter = Router();
 
@@ -23,5 +24,18 @@ router.get("/my", getMyOrdersHandler);
 router.get("/:id", getOrderHandler);
 router.post("/:id/payments/confirm", confirmPaymentHandler);
 router.post("/:id/cancel", cancelOrderHandler);
+
+router.get("/:id/invoice", async (req, res) => {
+  const userId = req.user!.userId;
+  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(req.user!.role);
+  try {
+    await generateInvoicePdf(req.params.id, userId, isAdmin, res);
+  } catch (err) {
+    const error = err as Error & { statusCode?: number };
+    if (!res.headersSent) {
+      res.status(error.statusCode ?? 500).json({ success: false, error: error.message });
+    }
+  }
+});
 
 export default router;

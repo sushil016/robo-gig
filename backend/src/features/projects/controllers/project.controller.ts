@@ -4,6 +4,11 @@
  */
 
 import type { Request, Response } from 'express';
+import { cacheInvalidate } from '../../../lib/redis.js';
+
+async function bustProjectCache() {
+  await cacheInvalidate("http:/api/projects*");
+}
 import {
   validateCreateProject,
   validateUpdateProject,
@@ -245,6 +250,7 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
     }
 
     const project = await createProject(validation.data!, userId);
+    void bustProjectCache();
 
     res.status(201).json({
       success: true,
@@ -296,6 +302,7 @@ export async function handleUpdateProject(req: Request, res: Response): Promise<
     }
 
     const project = await updateProject(id, validation.data!);
+    void bustProjectCache();
 
     res.status(200).json({
       success: true,
@@ -345,6 +352,7 @@ export async function handleDeleteProject(req: Request, res: Response): Promise<
     }
 
     await deleteProject(id);
+    void bustProjectCache();
 
     res.status(200).json({
       success: true,

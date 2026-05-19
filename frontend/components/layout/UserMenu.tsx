@@ -6,8 +6,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/hooks/useAuth';
-import type { User } from '@/lib/types/auth.types';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import type { User } from '@/features/auth/types/auth.types';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

@@ -9,6 +9,18 @@ import {
   demoteFromAdminController,
   listAdminsController,
 } from "../controller/admin.js";
+import {
+  listCustomersHandler,
+  getCustomerDetailHandler,
+  updateCustomerStatusHandler,
+} from "../features/admin/controllers/customer.controller.js";
+import {
+  revenueHandler,
+  ordersHandler,
+  topProductsHandler,
+  lowStockHandler,
+  dashboardKpisHandler,
+} from "../features/admin/controllers/analytics.controller.js";
 import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 
 const router: RouterType = Router();
@@ -21,5 +33,17 @@ router.use(authorize("ADMIN"));
 router.post("/promote", promoteToAdminController);
 router.post("/demote", demoteFromAdminController);
 router.get("/list", listAdminsController);
+
+// Customer management
+router.get("/customers", listCustomersHandler);
+router.get("/customers/:id", getCustomerDetailHandler);
+router.patch("/customers/:id/status", updateCustomerStatusHandler);
+
+// Analytics
+router.get("/analytics/kpis", dashboardKpisHandler);
+router.get("/analytics/revenue", revenueHandler);
+router.get("/analytics/orders", ordersHandler);
+router.get("/analytics/top-products", topProductsHandler);
+router.get("/analytics/low-stock", lowStockHandler);
 
 export default router;

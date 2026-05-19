@@ -1,19 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Cookie, X, ShieldCheck, ExternalLink } from "lucide-react";
+import { Cookie, X, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 const STORAGE_KEY = "roboroot_cookie_consent";
 
 export function CookieConsent() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) setVisible(true);
-  }, []);
+  const [visible, setVisible] = useState(() =>
+    typeof window !== "undefined" ? !localStorage.getItem(STORAGE_KEY) : false,
+  );
 
   const accept = () => {
     localStorage.setItem(STORAGE_KEY, "accepted");

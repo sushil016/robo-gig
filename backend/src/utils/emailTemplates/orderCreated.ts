@@ -74,7 +74,7 @@ export function orderCreatedTemplate(data: {
     }
 
     <p class="text-center">
-      <a href="https://buildwise.com/orders/${data.order.orderId}" class="button">Track Your Order</a>
+      <a href="https://roboroot.in/orders/${data.order.orderId}" class="button">Track Your Order</a>
     </p>
 
     <p>
@@ -83,12 +83,12 @@ export function orderCreatedTemplate(data: {
 
     <p>
       Questions about your order? Contact us at 
-      <a href="mailto:orders@buildwise.com">orders@buildwise.com</a>
+      <a href="mailto:orders@roboroot.in">orders@roboroot.in</a>
     </p>
 
     <p>
-      Thank you for shopping with BuildWise! 🚀<br>
-      The BuildWise Team
+      Thank you for shopping with RoboRoot! 🚀<br>
+      The RoboRoot Team
     </p>
   `;
 
@@ -111,13 +111,13 @@ Total Amount: ₹${data.order.total.toLocaleString()}
 
 ${data.order.shippingAddress ? `Shipping Address:\n${data.order.shippingAddress}` : ""}
 
-Track your order: https://buildwise.com/orders/${data.order.orderId}
+Track your order: https://roboroot.in/orders/${data.order.orderId}
 
 You'll receive another email once your order has been shipped with tracking information.
 
-Questions? Contact us at orders@buildwise.com
+Questions? Contact us at orders@roboroot.in
 
-Thank you for shopping with BuildWise! 🚀
-The BuildWise Team`,
+Thank you for shopping with RoboRoot! 🚀
+The RoboRoot Team`,
   };
 }

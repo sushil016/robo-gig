@@ -1,4 +1,4 @@
-import { PaymentClient } from "@/components/checkout/PaymentClient";
+import { PaymentClient } from "@/features/payment/components/PaymentClient";
 
 type PaymentPageProps = {
   params: Promise<{

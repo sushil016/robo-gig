@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { OrderStatus, PaymentGateway } from "../../../generated/prisma/client.js";
+import { logAdminAction } from "../../../services/admin-action-log.service.js";
 import {
   cancelUserOrder,
   confirmUserOrderPayment,
@@ -97,6 +98,7 @@ export async function updateAdminOrderStatusHandler(req: Request, res: Response)
     }
 
     const order = await updateAdminOrderStatus(orderId, req.body.status, req.body.note);
+    void logAdminAction(req.user!.userId, "UPDATE_ORDER_STATUS", "ORDER", orderId, { status: req.body.status });
 
     res.json({
       success: true,
@@ -167,7 +169,9 @@ export async function confirmPaymentHandler(req: Request, res: Response) {
       message: "Payment confirmed",
     });
   } catch (error) {
-    res.status(400).json({
+    const statusCode =
+      (error as Error & { statusCode?: number }).statusCode ?? 400;
+    res.status(statusCode).json({
       success: false,
       error: error instanceof Error ? error.message : "Failed to confirm payment",
     });

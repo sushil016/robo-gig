@@ -184,7 +184,7 @@ function transformProjectToResponse(project: any, includeCreator: boolean = fals
  * Build filter conditions for Prisma query
  */
 function buildFilterConditions(filters: ProjectFilters) {
-  const where: any = {};
+  const where: any = { deletedAt: null };
 
   // Category filter
   if (filters.category) {
@@ -375,8 +375,8 @@ export async function createProject(data: CreateProjectRequest, createdById: str
  * Get project by ID with component details
  */
 export async function getProjectById(projectId: string, includeComponents: boolean = false): Promise<ProjectResponse | null> {
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, deletedAt: null },
     include: {
       createdBy: true,
       defaultMentor: true,
@@ -399,8 +399,8 @@ export async function getProjectById(projectId: string, includeComponents: boole
  * Get project by slug with component details
  */
 export async function getProjectBySlug(slug: string, includeComponents: boolean = false): Promise<ProjectResponse | null> {
-  const project = await prisma.project.findUnique({
-    where: { slug },
+  const project = await prisma.project.findFirst({
+    where: { slug, deletedAt: null },
     include: {
       createdBy: true,
       defaultMentor: true,
@@ -547,21 +547,20 @@ export async function updateProject(
 }
 
 /**
- * Delete a project
+ * Soft-delete a project (sets deletedAt; never hard-deletes)
  */
 export async function deleteProject(projectId: string): Promise<void> {
-  // Check if project exists
   const project = await prisma.project.findUnique({
-    where: { id: projectId }
+    where: { id: projectId },
   });
 
-  if (!project) {
+  if (!project || project.deletedAt) {
     throw new Error('Project not found');
   }
 
-  // Delete project (cascade will handle related records)
-  await prisma.project.delete({
-    where: { id: projectId }
+  await prisma.project.update({
+    where: { id: projectId },
+    data: { deletedAt: new Date(), isPublic: false },
   });
 }
 

@@ -19,7 +19,7 @@ export function wrapTemplate(content: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BuildWise</title>
+  <title>RoboRoot</title>
   <style>
     body {
       margin: 0;
@@ -128,24 +128,24 @@ export function wrapTemplate(content: string): string {
 <body>
   <div class="email-container">
     <div class="header">
-      <a href="https://buildwise.com" class="logo">🚀 BuildWise</a>
+      <a href="https://roboroot.in" class="logo">⚡ RoboRoot</a>
     </div>
     <div class="content">
       ${content}
     </div>
     <div class="footer">
-      <p><strong>BuildWise</strong> - Empowering Engineering Students</p>
+      <p><strong>RoboRoot</strong> - India's Robotics & Electronics Marketplace</p>
       <div class="social-links">
-        <a href="https://twitter.com/buildwise">Twitter</a>
-        <a href="https://linkedin.com/company/buildwise">LinkedIn</a>
-        <a href="https://instagram.com/buildwise">Instagram</a>
+        <a href="https://twitter.com/roboroot_in">Twitter</a>
+        <a href="https://linkedin.com/company/roboroot">LinkedIn</a>
+        <a href="https://instagram.com/roboroot_in">Instagram</a>
       </div>
       <p class="text-muted">
-        This email was sent to you because you have an account with BuildWise.<br>
-        If you have any questions, contact us at <a href="mailto:support@buildwise.com">support@buildwise.com</a>
+        This email was sent to you because you have an account with RoboRoot.<br>
+        If you have any questions, contact us at <a href="mailto:support@roboroot.in">support@roboroot.in</a>
       </p>
       <p class="text-muted">
-        &copy; ${new Date().getFullYear()} BuildWise. All rights reserved.
+        &copy; ${new Date().getFullYear()} RoboRoot. All rights reserved.
       </p>
     </div>
   </div>

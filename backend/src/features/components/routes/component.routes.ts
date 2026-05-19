@@ -6,15 +6,49 @@
 import { Router, type Router as RouterType } from "express";
 import * as componentController from "../controllers/component.controller.js";
 import { handleCreateComponentWithUploads } from "../controllers/component-upload.controller.js";
+import {
+  getProductMediaHandler,
+  addProductMediaHandler,
+  addProductMediaByUrlHandler,
+  deleteProductMediaHandler,
+  reorderProductMediaHandler,
+} from "../controllers/component-media.controller.js";
 import { authenticate, authorize } from "../../../middlewares/auth.middleware.js";
-import { uploadComponentImages } from "../../../middlewares/upload.middleware.js";
+import { uploadComponentImages, uploadProductMedia } from "../../../middlewares/upload.middleware.js";
+import { getComponentReviewsHandler } from "../../reviews/controllers/review.controller.js";
+import { cacheResponse } from "../../../middlewares/cache.middleware.js";
 
 const router: RouterType = Router();
 
-// Public routes (no authentication required)
-router.get("/", componentController.getComponentsHandler);
-router.get("/categories/tree", componentController.getCategoryTreeHandler);
+// Public routes — cached for 60s (products) and 120s (category tree)
+router.get("/", cacheResponse(60), componentController.getComponentsHandler);
+router.get("/categories/tree", cacheResponse(120), componentController.getCategoryTreeHandler);
+
+// Admin analytics routes — MUST be before /:id to avoid Express matching "analytics" as an id param
+router.get(
+  "/analytics/low-stock",
+  authenticate,
+  authorize("ADMIN", "SUPER_ADMIN"),
+  componentController.getLowStockHandler
+);
+
+router.get(
+  "/analytics/out-of-stock",
+  authenticate,
+  authorize("ADMIN", "SUPER_ADMIN"),
+  componentController.getOutOfStockHandler
+);
+
+// Dynamic param route — must come after all static paths
 router.get("/:id", componentController.getComponentByIdHandler);
+router.get("/:id/reviews", getComponentReviewsHandler);
+
+// Product media — public read, admin write
+router.get("/:id/media", getProductMediaHandler);
+router.post("/:id/media", authenticate, authorize("ADMIN"), uploadProductMedia, addProductMediaHandler);
+router.post("/:id/media/url", authenticate, authorize("ADMIN"), addProductMediaByUrlHandler);
+router.delete("/:id/media/:mediaId", authenticate, authorize("ADMIN"), deleteProductMediaHandler);
+router.put("/:id/media/reorder", authenticate, authorize("ADMIN"), reorderProductMediaHandler);
 
 // Admin routes (authentication + admin role required)
 
@@ -70,21 +104,6 @@ router.patch(
   authenticate,
   authorize("ADMIN"),
   componentController.updateStockHandler
-);
-
-// Admin analytics routes
-router.get(
-  "/analytics/low-stock",
-  authenticate,
-  authorize("ADMIN"),
-  componentController.getLowStockHandler
-);
-
-router.get(
-  "/analytics/out-of-stock",
-  authenticate,
-  authorize("ADMIN"),
-  componentController.getOutOfStockHandler
 );
 
 export default router;

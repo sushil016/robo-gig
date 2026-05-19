@@ -105,9 +105,9 @@ export function getEmailTemplate(
 
     default:
       return {
-        subject: "BuildWise Notification",
-        html: "<p>You have a new notification from BuildWise.</p>",
-        text: "You have a new notification from BuildWise.",
+        subject: "RoboRoot Notification",
+        html: "<p>You have a new notification from RoboRoot.</p>",
+        text: "You have a new notification from RoboRoot.",
       };
   }
 }

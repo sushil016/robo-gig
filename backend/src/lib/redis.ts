@@ -1,0 +1,81 @@
+import { Redis } from "ioredis";
+
+const REDIS_URL = process.env.REDIS_URL;
+
+function createRedisClient(): Redis | null {
+  if (!REDIS_URL) {
+    console.warn("[Redis] REDIS_URL not set — caching disabled");
+    return null;
+  }
+
+  // Upstash requires TLS; ensure tls:{} is passed regardless of scheme
+  const client = new Redis(REDIS_URL, {
+    tls: {},
+    lazyConnect: true,
+    maxRetriesPerRequest: 2,
+    retryStrategy: (times: number) => (times > 3 ? null : Math.min(times * 200, 2000)),
+    enableOfflineQueue: false,
+  });
+
+  client.on("error", (err: Error) => {
+    console.error("[Redis] Connection error:", err.message);
+  });
+
+  client.on("connect", () => {
+    console.log("[Redis] Connected to Upstash");
+  });
+
+  return client;
+}
+
+export const redis = createRedisClient();
+
+/**
+ * Creates a dedicated ioredis connection for BullMQ.
+ * BullMQ requires maxRetriesPerRequest: null and its own separate connection.
+ * Throws if REDIS_URL is not set (BullMQ is not optional).
+ */
+export function createBullMQConnection(): Redis {
+  if (!REDIS_URL) throw new Error("REDIS_URL is required for BullMQ email queue");
+  return new Redis(REDIS_URL, {
+    tls: {},
+    maxRetriesPerRequest: null, // required by BullMQ
+    retryStrategy: (times: number) => Math.min(times * 500, 10_000),
+    enableOfflineQueue: true,
+  });
+}
+
+const DEFAULT_TTL = 60; // seconds
+
+export async function cacheGet<T>(key: string): Promise<T | null> {
+  if (!redis) return null;
+  try {
+    const raw = await redis.get(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function cacheSet(key: string, value: unknown, ttlSeconds = DEFAULT_TTL): Promise<void> {
+  if (!redis) return;
+  try {
+    await redis.set(key, JSON.stringify(value), "EX", ttlSeconds);
+  } catch {
+    // cache miss is non-fatal
+  }
+}
+
+export async function cacheInvalidate(...patterns: string[]): Promise<void> {
+  if (!redis) return;
+  try {
+    const pipeline = redis.pipeline();
+    for (const pattern of patterns) {
+      const keys = await redis.keys(pattern);
+      for (const key of keys) pipeline.del(key);
+    }
+    await pipeline.exec();
+  } catch {
+    // invalidation failure is non-fatal
+  }
+}

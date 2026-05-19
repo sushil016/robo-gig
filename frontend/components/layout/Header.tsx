@@ -1,16 +1,13 @@
-/**
- * Header Component
- * Main navigation header with RoboRoot branding
- * Shows user menu when authenticated, login/register buttons when not
- */
-
 'use client';
 
 import Link from 'next/link';
-import { useAuthStore } from '@/lib/store/authStore';
-import { useCartStore } from '@/lib/store/cartStore';
-import { catalogNavigationGroups } from '@/data/catalog-navigation';
-import { UserMenu } from './UserMenu';
+import Image from 'next/image';
+import { useAuthStore } from '@/store/user.store';
+import { useCartStore } from '@/store/cart.store';
+import { useQuery } from '@tanstack/react-query';
+import { componentApi } from '@/features/products/services/product.service';
+import type { ComponentCategoryNode } from '@/types/marketplace.types';
+import { UserMenu } from '@/components/layout/UserMenu';
 import { Button } from '@/components/ui/button';
 import {
   BookOpen,
@@ -68,8 +65,29 @@ function AnnouncementBar() {
 export function Header() {
   const { isAuthenticated, user } = useAuthStore();
   const cartItemCount = useCartStore((state) => state.getTotalItems());
+  const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<'catalog' | 'shop' | null>(null);
+  const [shortcutKey, setShortcutKey] = useState('');
+
+  function openCommandPalette() {
+    window.dispatchEvent(new CustomEvent("command-palette:open"));
+  }
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setMounted(true);
+      const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+      setShortcutKey(isMac ? '⌘K' : 'Ctrl K');
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  const { data: categoryTree = [] } = useQuery({
+    queryKey: ['component-category-tree'],
+    queryFn: componentApi.getCategoryTree,
+    staleTime: 5 * 60 * 1000,
+  });
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#D8D8C4] bg-[#FAFAED] text-zinc-950">
@@ -85,35 +103,34 @@ export function Header() {
             support@roboroot.in
           </a>
 
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border-4 border-[#1CA2D1] bg-[#FAFAED] text-2xl font-black text-[#1CA2D1]">
-              R
-            </span>
-            <span className="leading-none">
-              <span className="block text-2xl font-black tracking-wide text-zinc-950">
-                ROBO<span className="text-[#1CA2D1]">ROOT</span>
-              </span>
-              <span className="text-xs font-semibold text-zinc-500">
-                Ideas, Parts, Builds
-              </span>
-            </span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/roboroot-logo.png"
+              alt="RoboRoot"
+              width={160}
+              height={44}
+              className="h-11 w-auto"
+              priority
+            />
           </Link>
 
           <div className="hidden min-w-0 flex-1 items-center justify-center px-4 lg:flex">
-            <form action="/components" className="flex w-full max-w-xl overflow-hidden rounded-full border border-[#D8D8C4] bg-[#F3F3E4] shadow-sm">
-              <div className="flex flex-1 items-center gap-2 pl-5 pr-2">
-                <Search className="h-4 w-4 shrink-0 text-zinc-400" />
-                <input
-                  name="search"
-                  aria-label="Search components"
-                  placeholder="Search Arduino, ESP32, sensors..."
-                  className="h-12 w-full bg-transparent text-sm font-medium outline-none placeholder:text-zinc-400"
-                />
-              </div>
-              <button className="my-1 mr-1 rounded-full bg-[#1CA2D1] px-6 text-sm font-bold text-white transition hover:opacity-90">
-                Search
-              </button>
-            </form>
+            <button
+              type="button"
+              onClick={openCommandPalette}
+              aria-label="Open search"
+              className="flex w-full max-w-xl items-center gap-2 overflow-hidden rounded-full border border-[#D8D8C4] bg-[#F3F3E4] pl-5 pr-2 shadow-sm transition hover:border-[#1CA2D1]/40 hover:shadow-md h-12 text-left"
+            >
+              <Search className="h-4 w-4 shrink-0 text-zinc-400" />
+              <span className="flex-1 text-sm font-medium text-zinc-400">
+                Search Arduino, ESP32, sensors...
+              </span>
+              {shortcutKey && (
+                <kbd className="shrink-0 hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold text-zinc-400 bg-[#EAEADB] border border-[#D8D8C4] rounded-md leading-none select-none">
+                  {shortcutKey}
+                </kbd>
+              )}
+            </button>
           </div>
 
           <div className="flex items-center gap-1">
@@ -133,8 +150,8 @@ export function Header() {
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative border border-transparent hover:border-zinc-950 hover:shadow-sm transition-all" aria-label="Cart">
                 <ShoppingCart className="h-5 w-5" />
-                {cartItemCount > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#1CA2D1] text-xs font-bold text-white">
+                {mounted && cartItemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#1CA2D1] text-xs font-bold text-white">
                     {cartItemCount > 99 ? '99+' : cartItemCount}
                   </span>
                 )}
@@ -177,7 +194,9 @@ export function Header() {
                 All Categories
                 <ChevronDown className="h-4 w-4" />
               </Link>
-              {openMenu === 'catalog' && <CatalogMegaMenu onClose={() => setOpenMenu(null)} />}
+              {openMenu === 'catalog' && (
+                <CatalogMegaMenu categories={categoryTree} onClose={() => setOpenMenu(null)} />
+              )}
             </div>
             <Link href="/" className="flex h-full items-center px-5 text-[#1CA2D1] link-underline-left transition hover:text-zinc-950">
               Home
@@ -194,7 +213,9 @@ export function Header() {
                 Shop Parts
                 <ChevronDown className="h-4 w-4" />
               </Link>
-              {openMenu === 'shop' && <CatalogMegaMenu align="wide" onClose={() => setOpenMenu(null)} />}
+              {openMenu === 'shop' && (
+                <CatalogMegaMenu categories={categoryTree} align="wide" onClose={() => setOpenMenu(null)} />
+              )}
             </div>
             <Link href="/categories" className="flex h-full items-center px-5 link-underline-left transition hover:text-zinc-950">
               Categories
@@ -246,23 +267,25 @@ export function Header() {
               <Menu className="h-5 w-5" />
               All Categories
             </Link>
-            <div className="rounded-md border border-[#D8D8C4] bg-[#F3F3E4] p-3">
-              <p className="mb-2 text-xs font-black uppercase tracking-wide text-[#1CA2D1]">
-                Category tree
-              </p>
-              <div className="grid gap-2">
-                {catalogNavigationGroups.slice(0, 5).map((group) => (
-                  <Link
-                    key={group.name}
-                    href={group.href}
-                    className="rounded-md bg-[#FAFAED] px-3 py-2 text-sm font-bold text-zinc-800"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {group.name}
-                  </Link>
-                ))}
+            {categoryTree.length > 0 && (
+              <div className="rounded-md border border-[#D8D8C4] bg-[#F3F3E4] p-3">
+                <p className="mb-2 text-xs font-black uppercase tracking-wide text-[#1CA2D1]">
+                  Category tree
+                </p>
+                <div className="grid gap-2">
+                  {categoryTree.slice(0, 5).map((cat) => (
+                    <Link
+                      key={cat.category}
+                      href={`/components?category=${encodeURIComponent(cat.category)}`}
+                      className="rounded-md bg-[#FAFAED] px-3 py-2 text-sm font-bold text-zinc-800"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {cat.category}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <Link
               href="/robomaniac-store"
               className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-bold text-zinc-800 hover:text-zinc-950"
@@ -315,12 +338,21 @@ export function Header() {
   );
 }
 
-function CatalogMegaMenu({ align = "left", onClose }: { align?: "left" | "wide"; onClose: () => void }) {
+function CatalogMegaMenu({
+  categories,
+  align = 'left',
+  onClose,
+}: {
+  categories: ComponentCategoryNode[];
+  align?: 'left' | 'wide';
+  onClose: () => void;
+}) {
+  const totalSubcategories = categories.reduce((acc, c) => acc + c.subcategories.length, 0);
+
   return (
-    <div className={`absolute top-full z-50 pt-2 ${align === "wide" ? "-left-72" : "left-0"}`}>
+    <div className={`absolute top-full z-50 pt-2 ${align === 'wide' ? '-left-72' : 'left-0'}`}>
       <div className="w-[960px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[#D8D8C4] bg-[#F3F3E4] shadow-2xl shadow-zinc-200/60">
 
-        {/* Header strip */}
         <div className="flex items-center justify-between border-b border-[#D8D8C4] bg-[#FAFAED] px-6 py-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.20em] text-[#1CA2D1]">
@@ -339,30 +371,33 @@ function CatalogMegaMenu({ align = "left", onClose }: { align?: "left" | "wide";
           </Link>
         </div>
 
-        {/* Category grid */}
         <div className="grid gap-6 p-6 md:grid-cols-4">
-          {catalogNavigationGroups.map((group, idx) => (
-            <div key={group.name}>
-              <Link href={group.href} onClick={onClose} className="group/cat flex items-center gap-2 pb-0.5">
+          {categories.map((cat, idx) => (
+            <div key={cat.category}>
+              <Link
+                href={`/components?category=${encodeURIComponent(cat.category)}`}
+                onClick={onClose}
+                className="group/cat flex items-center gap-2 pb-0.5"
+              >
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1CA2D1]/15 text-[9px] font-black text-[#1CA2D1]">
                   {idx + 1}
                 </span>
                 <span className="text-sm font-black text-zinc-950 transition-colors group-hover/cat:text-[#1CA2D1]">
-                  {group.name}
+                  {cat.category}
                 </span>
               </Link>
               <p className="mb-3 pl-7 text-[11px] font-medium leading-4 text-zinc-400">
-                {group.description}
+                {cat.count} products
               </p>
               <div className="space-y-0.5 pl-1">
-                {group.subcategories.map((subcategory) => (
+                {cat.subcategories.map((sub) => (
                   <Link
-                    key={subcategory.name}
-                    href={subcategory.href}
+                    key={sub.name}
+                    href={`/components?category=${encodeURIComponent(cat.category)}&subcategory=${encodeURIComponent(sub.name)}`}
                     onClick={onClose}
                     className="block rounded-lg px-3 py-1.5 text-[11.5px] font-semibold text-zinc-600 transition-all hover:bg-[#1CA2D1]/10 hover:text-[#1CA2D1]"
                   >
-                    {subcategory.name}
+                    {sub.name}
                   </Link>
                 ))}
               </div>
@@ -370,7 +405,6 @@ function CatalogMegaMenu({ align = "left", onClose }: { align?: "left" | "wide";
           ))}
         </div>
 
-        {/* Footer quick-links */}
         <div className="flex items-center justify-between border-t border-[#D8D8C4] bg-[#FAFAED]/80 px-6 py-3">
           <div className="flex items-center gap-5 text-[11px] font-bold text-zinc-500">
             <Link href="/components?isBestSeller=true" onClick={onClose} className="transition-colors hover:text-[#1CA2D1]">↗ Best Sellers</Link>
@@ -378,7 +412,9 @@ function CatalogMegaMenu({ align = "left", onClose }: { align?: "left" | "wide";
             <Link href="/robomaniac-store" onClick={onClose} className="transition-colors hover:text-[#1CA2D1]">↗ Robomaniac Store</Link>
             <Link href="/projects?difficulty=BEGINNER" onClick={onClose} className="transition-colors hover:text-[#1CA2D1]">↗ Starter Builds</Link>
           </div>
-          <span className="text-[10px] font-semibold text-zinc-400">8 categories · 32+ subcategories</span>
+          <span className="text-[10px] font-semibold text-zinc-400">
+            {categories.length} categories · {totalSubcategories}+ subcategories
+          </span>
         </div>
       </div>
     </div>

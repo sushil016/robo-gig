@@ -81,6 +81,18 @@ export const uploadSingleImage: RequestHandler = multer({
 }).single('image');
 
 /**
+ * Upload middleware for a single product media image
+ */
+export const uploadProductMedia: RequestHandler = multer({
+  storage,
+  fileFilter: imageFileFilter,
+  limits: {
+    fileSize: UPLOAD_LIMITS.MAX_IMAGE_SIZE,
+    files: 1,
+  },
+}).single("file");
+
+/**
  * Upload middleware for multiple images
  */
 export const uploadMultipleImages = (maxCount: number = 5): RequestHandler => {
